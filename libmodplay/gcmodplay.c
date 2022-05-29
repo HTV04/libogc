@@ -64,7 +64,7 @@ static void* player(void *arg)
 }
 
 #ifdef __AESNDLIB_H__
-static void __aesndvoicecallback(AESNDPB *pb,u32 state)
+static void __aesndvoicecallback(AESNDPB *pb,u32 state,void *cbArg)
 {
 #ifdef _GCMOD_DEBUG
 	static u64 rqstart = 0,rqend = 0;
@@ -90,7 +90,7 @@ static void __aesndvoicecallback(AESNDPB *pb,u32 state)
 #else
 
 static void dmaCallback()
-{	
+{
 #ifdef _GCMOD_DEBUG
 	static u64 adstart = 0,adend = 0;
 
@@ -138,7 +138,7 @@ static s32 SndBufStart(MODSNDBUF *sndbuf)
 	if(sndPlaying) return -1;
 
 	memcpy(&sndBuffer,sndbuf,sizeof(MODSNDBUF));
-	
+
 	shiftVal = 0;
 	if(sndBuffer.chans==2)
 		shiftVal++;
@@ -188,10 +188,10 @@ static void SndBufStop()
 static s32 updateWaveFormat(MODPlay *mod)
 {
 	BOOL p = mod->playing;
-	
+
 	if(p)
 		SndBufStop();
-	
+
 	if(mod->stereo) {
 		mod->soundBuf.chans = 2;
 		mod->mod.channels = 2;
@@ -203,21 +203,21 @@ static s32 updateWaveFormat(MODPlay *mod)
 	mod->soundBuf.freq = mod->playfreq;
 	mod->mod.freq = mod->playfreq;
 	mod->mod.bits = 16;
-	
+
 	if(p) {
 		mod->mod.samplescounter = 0;
 		mod->mod.samplespertick = mod->mod.bpmtab[mod->mod.bpm-32];
 	}
-	
+
 	mod->soundBuf.fmt = 16;
 	mod->soundBuf.usr_data = mod;
 	mod->soundBuf.callback = mixCallback;
 	mod->soundBuf.samples = (f32)mod->playfreq/50.0F;
-	
+
 	if(p)
 		SndBufStart(&mod->soundBuf);
-	
-	return 0;	
+
+	return 0;
 }
 
 void MODPlay_Init(MODPlay *mod)
@@ -227,7 +227,7 @@ void MODPlay_Init(MODPlay *mod)
 #ifndef __AESNDLIB_H__
     AUDIO_Init(NULL);
 #else
-	modvoice = AESND_AllocateVoice(__aesndvoicecallback);
+	modvoice = AESND_AllocateVoice(__aesndvoicecallback,NULL);
 	if(modvoice) {
 		AESND_SetVoiceFormat(modvoice,VOICE_STEREO16);
 		AESND_SetVoiceFrequency(modvoice,mod_freq);
@@ -297,7 +297,7 @@ s32 MODPlay_Start(MODPlay *mod)
 {
 	if(mod->playing) return -1;
 	if(mod->mod.modraw==NULL) return -1;
-	
+
 	updateWaveFormat(mod);
 	MOD_Start(&mod->mod);
 	if(SndBufStart(&mod->soundBuf)<0) return -1;
@@ -317,7 +317,7 @@ s32 MODPlay_Stop(MODPlay *mod)
 s32 MODPlay_AllocSFXChannels(MODPlay *mod,u32 sfxchans)
 {
 	if(mod->mod.modraw==NULL) return -1;
-	
+
 	if(MOD_AllocSFXChannels(&mod->mod,sfxchans)==0) {
 		mod->numSFXChans = sfxchans;
 		return 0;
