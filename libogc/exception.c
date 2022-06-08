@@ -166,7 +166,7 @@ static void _cpu_print_stack(void *pc,void *lr,void *r1)
 	p = r1;
 	if(!p) __asm__ __volatile__("mr %0,%%r1" : "=r"(p));
 
-	kprintf("\n\tSTACK DUMP:");
+	kprintf("\n\tStack dump:");
 
 	for(i=0;i<CPU_STACK_TRACE_DEPTH-1 && p->up;p=p->up,i++) {
 		if(i%4) kprintf(" --> ");
@@ -188,6 +188,8 @@ static void _cpu_print_stack(void *pc,void *lr,void *r1)
 				break;
 		}
 	}
+
+	kprintf("\n\n");
 }
 
 void __exception_setreload(int t)
@@ -200,9 +202,12 @@ static void waitForReload(void)
 	u32 level;
 
 	PAD_Init();
-	
+
+	kprintf("\tPress Z or RESET to reload\n");
+	kprintf("\tPress A to reset\n\n");
+
 	if(reload_timer > 0)
-		kprintf("\n\tReloading in %d seconds\n", reload_timer/50);
+		kprintf("\tReloading in %d seconds\n", reload_timer/50);
 
 	while ( 1 )
 	{
@@ -210,17 +215,17 @@ static void waitForReload(void)
 
 		int buttonsDown = PAD_ButtonsDown(0);
 
-		if( (buttonsDown & PAD_TRIGGER_Z) || SYS_ResetButtonDown() || 
+		if( (buttonsDown & PAD_TRIGGER_Z) || SYS_ResetButtonDown() ||
 			reload_timer == 0 )
 		{
-			kprintf("\n\tReload\n\n\n");
+			kprintf("\tReloading...\n\n");
 			_CPU_ISR_Disable(level);
 			__reload ();
 		}
 
 		if ( buttonsDown & PAD_BUTTON_A )
 		{
-			kprintf("\n\tReset\n\n\n");
+			kprintf("\tResetting...\n\n");
 #if defined(HW_DOL)
 			SYS_ResetSystem(SYS_HOTRESET,0,FALSE);
 #else
@@ -242,7 +247,9 @@ void c_default_exceptionhandler(frame_context *pCtx)
 	__console_init(exception_xfb,20,20,640,574,1280);
 	CON_EnableGecko(1, true);
 
-	kprintf("\n\n\n\tException (%s) occurred!\n", exception_name[pCtx->EXCPT_Number]);
+	kprintf("\n\n\n\x1b[31;49m\tAn exception occurred\n\n\x1b[39;49m");
+
+	kprintf("\tException type: %s\n\n", exception_name[pCtx->EXCPT_Number]);
 
 	kprintf("\tGPR00 %08X GPR08 %08X GPR16 %08X GPR24 %08X\n",pCtx->GPR[0], pCtx->GPR[8], pCtx->GPR[16], pCtx->GPR[24]);
 	kprintf("\tGPR01 %08X GPR09 %08X GPR17 %08X GPR25 %08X\n",pCtx->GPR[1], pCtx->GPR[9], pCtx->GPR[17], pCtx->GPR[25]);
@@ -260,10 +267,11 @@ void c_default_exceptionhandler(frame_context *pCtx)
 	if((pCtx->EXCPT_Number==EX_DSI) || (pCtx->EXCPT_Number==EX_FP)) {
 		u32 i;
 		u32 *pAdd = (u32*)pCtx->SRR0;
-		kprintf("\n\n\tCODE DUMP:\n");
+		kprintf("\n\n\tCode dump:\n");
 		for (i=0; i<12; i+=4)
 			kprintf("\t%p:  %08X %08X %08X %08X\n",
 			&(pAdd[i]),pAdd[i], pAdd[i+1], pAdd[i+2], pAdd[i+3]);
+		kprintf("\n\n");
 	}
 
 	waitForReload();
