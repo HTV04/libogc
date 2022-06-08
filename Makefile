@@ -299,10 +299,11 @@ install-headers:
 #---------------------------------------------------------------------------------
 install: wii cube install-headers
 #---------------------------------------------------------------------------------
-	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc
-	@cp -frv include $(DESTDIR)$(DEVKITPRO)/libogc
-	@cp -frv lib $(DESTDIR)$(DEVKITPRO)/libogc
-	@cp -frv libogc_license.txt $(DESTDIR)$(DEVKITPRO)/libogc
+	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libogc-mod
+	@cp -frv include $(DESTDIR)$(DEVKITPRO)/libogc-mod
+	@cp -frv lib $(DESTDIR)$(DEVKITPRO)/libogc-mod
+	@cp -frv libogc_license.txt $(DESTDIR)$(DEVKITPRO)/libogc-mod
+	@cp -frv gamecube_rules wii_rules $(DESTDIR)$(DEVKITPRO)/libogc-mod
 
 
 #---------------------------------------------------------------------------------
