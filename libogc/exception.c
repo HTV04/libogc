@@ -207,7 +207,7 @@ static void waitForReload(void)
 	kprintf("\tPress A to reset\n\n");
 
 	if(reload_timer > 0)
-		kprintf("\tReloading in %d seconds\n", reload_timer/50);
+		kprintf("\tReloading in %d seconds\n\n", reload_timer/50);
 
 	while ( 1 )
 	{
