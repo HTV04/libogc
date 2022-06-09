@@ -7,16 +7,15 @@
 #include <ogc/machine/processor.h>
 
 #include "aesndlib.h"
-#include "aesnd_dsp_mixer_bin.h"
+#include "aesnddspmixer.h"
 
 #define PB_STRUCT_SIZE			64
 #define DSP_DRAMSIZE			8192
 
-
-#define VOICE_PAUSE    0x00000008
-#define VOICE_LOOP     0x00000010
-#define VOICE_ONCE     0x00000020
-#define VOICE_STREAM   0x00000040
+#define VOICE_PAUSE				0x00000008
+#define VOICE_LOOP				0x00000010
+#define VOICE_ONCE				0x00000020
+#define VOICE_STREAM			0x00000040
 
 #define VOICE_FINISHED			0x00100000
 #define VOICE_STOPPED			0x00200000
@@ -130,7 +129,6 @@ static __inline__ void __aesndcopycommand(AESNDPB *dst,AESNDPB *src)
 	dst->cb = src->cb;
 	dst->cbArg = src->cbArg;
 }
-
 
 static __inline__ void __aesndsetvoiceformat(AESNDPB *pb,u32 format)
 {
@@ -460,7 +458,7 @@ void AESND_Init(void)
 		for(i=0;i<MAX_VOICES;i++)
 			snd_set0w((int*)&__aesndvoicepb[i],sizeof(struct aesndpb_t)>>2);
 
-		__aesndloaddsptask(&__aesnddsptask,aesnd_dsp_mixer_bin,aesnd_dsp_mixer_bin_size,__dspdram,DSP_DRAMSIZE);
+		__aesndloaddsptask(&__aesnddsptask,aesnddspmixer,aesnddspmixer_size,__dspdram,DSP_DRAMSIZE);
 	}
 
 	AUDIO_RegisterDMACallback(__audio_dma_callback);
@@ -554,8 +552,8 @@ AESNDPB* AESND_AllocateVoice(AESNDVoiceCallback cb,void *cbArg)
 			pb->buf_curr = 0;
 			pb->buf_end = 0;
 			pb->counter = 0;
-			pb->volume_l = 0x100;
-			pb->volume_r = 0x100;
+			pb->volume_l = 0x0100;
+			pb->volume_r = 0x0100;
 			pb->freq_h = 0x0001;
 			pb->freq_l = 0x0000;
 			pb->cb = cb;
@@ -687,6 +685,15 @@ void AESND_SetVoiceStop(AESNDPB *pb,bool stop)
 	_CPU_ISR_Restore(level);
 }
 
+void AESND_SetVoiceDelay(AESNDPB *pb,u32 delay)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	pb->delay = (delay*48);
+	_CPU_ISR_Restore(level);
+}
+
 AESNDVoiceCallback AESND_RegisterVoiceCallback(AESNDPB *pb,AESNDVoiceCallback cb,void *cbArg)
 {
 	u32 level;
@@ -699,13 +706,4 @@ AESNDVoiceCallback AESND_RegisterVoiceCallback(AESNDPB *pb,AESNDVoiceCallback cb
 	_CPU_ISR_Restore(level);
 
 	return rcb;
-}
-
-void AESND_SetVoiceDelay(AESNDPB *pb,u32 delay)
-{
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-	pb->delay = (delay*48);
-	_CPU_ISR_Restore(level);
 }

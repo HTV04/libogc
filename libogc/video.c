@@ -2058,19 +2058,15 @@ static inline void __adjustPosition(u16 acv)
 
 static inline void __importAdjustingValues(void)
 {
-#ifdef HW_DOL
-	syssram *sram;
-
-	sram = __SYS_LockSram();
-	displayOffsetH = sram->display_offsetH;
-	__SYS_UnlockSram(0);
-#else
+#if defined(HW_RVL)
 	s8 offset;
 	if ( CONF_GetDisplayOffsetH(&offset) == 0 ) {
 		displayOffsetH = offset;
 	} else {
 		displayOffsetH = 0;
 	}
+#else
+	displayOffsetH = SYS_GetDisplayOffsetH();
 #endif
 	displayOffsetV = 0;
 }
@@ -2826,67 +2822,59 @@ GXRModeObj *rmode = NULL;
 	u32 tvmode = CONF_GetVideo();
 	if (CONF_GetProgressiveScan() > 0 && VIDEO_HaveComponentCable()) {
 		switch (tvmode) {
-			case CONF_VIDEO_NTSC:
-				rmode = &TVNtsc480Prog;
-				break;
 			case CONF_VIDEO_PAL:
 				if (CONF_GetEuRGB60() > 0)
 					rmode = &TVEurgb60Hz480Prog;
 				else rmode = &TVPal576ProgScale;
 				break;
-			case CONF_VIDEO_MPAL:
-				rmode = &TVMpal480Prog;
-				break;
 			default:
 				rmode = &TVNtsc480Prog;
+				break;
 		}
 	} else {
 		switch (tvmode) {
-			case CONF_VIDEO_NTSC:
-				rmode = &TVNtsc480IntDf;
-				break;
 			case CONF_VIDEO_PAL:
 				if (CONF_GetEuRGB60() > 0)
 					rmode = &TVEurgb60Hz480IntDf;
 				else rmode = &TVPal576IntDfScale;
 				break;
 			case CONF_VIDEO_MPAL:
-				rmode = &TVMpal480IntDf;
+				if (VIDEO_HaveComponentCable())
+					rmode = &TVNtsc480IntDf;
+				else rmode = &TVMpal480IntDf;
 				break;
 			default:
 				rmode = &TVNtsc480IntDf;
+				break;
 		}
 	}
 #else
-	u32 tvmode = VIDEO_GetCurrentTvMode();
-	if (VIDEO_HaveComponentCable()) {
+	u32 tvmode = SYS_GetVideoMode();
+	if (SYS_GetProgressiveScan() && VIDEO_HaveComponentCable()) {
 		switch (tvmode) {
-			case VI_NTSC:
+			case SYS_VIDEO_PAL:
+				if (SYS_GetEuRGB60())
+					rmode = &TVEurgb60Hz480Prog;
+				else rmode = &TVPal576ProgScale;
+				break;
+			default:
 				rmode = &TVNtsc480Prog;
-				break;
-			case VI_PAL:
-				rmode = &TVPal576ProgScale;
-				break;
-			case VI_MPAL:
-				rmode = &TVMpal480Prog;
-				break;
-			case VI_EURGB60:
-				rmode = &TVEurgb60Hz480Prog;
 				break;
 		}
 	} else {
 		switch (tvmode) {
-			case VI_NTSC:
+			case SYS_VIDEO_PAL:
+				if (SYS_GetEuRGB60())
+					rmode = &TVEurgb60Hz480IntDf;
+				else rmode = &TVPal576IntDfScale;
+				break;
+			case SYS_VIDEO_MPAL:
+				if (VIDEO_HaveComponentCable())
+					rmode = &TVNtsc480IntDf;
+				else rmode = &TVMpal480IntDf;
+				break;
+			default:
 				rmode = &TVNtsc480IntDf;
-				break;
-			case VI_PAL:
-				rmode = &TVPal576IntDfScale;
-				break;
-			case VI_MPAL:
-				rmode = &TVMpal480IntDf;
-				break;
-			case VI_EURGB60:
-				rmode = &TVEurgb60Hz480IntDf;
 				break;
 		}
 	}
@@ -2957,4 +2945,33 @@ void VIDEO_ClearFrameBuffer(GXRModeObj *rmode,void *fb,u32 color)
 u32 VIDEO_HaveComponentCable(void)
 {
 	return (_viReg[55]&0x01);
+}
+
+void VIDEO_GetAdjustingValues(s16 *hor,s16 *ver)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	*hor = displayOffsetH;
+	*ver = displayOffsetV;
+	_CPU_ISR_Restore(level);
+}
+
+void VIDEO_SetAdjustingValues(s16 hor,s16 ver)
+{
+	u32 level;
+	const struct _timing *curtiming;
+
+	_CPU_ISR_Disable(level);
+	displayOffsetH = hor;
+	displayOffsetV = ver;
+
+	curtiming = HorVer.timing;
+	__adjustPosition(curtiming->acv);
+	__setHorizontalRegs(curtiming,HorVer.adjustedDispPosX,HorVer.dispSizeX);
+
+	if(fbSet) __setFbbRegs(&HorVer,&HorVer.tfbb,&HorVer.bfbb,&HorVer.rtfbb,&HorVer.rbfbb);
+
+	__setVerticalRegs(HorVer.adjustedDispPosY,HorVer.adjustedDispSizeY,curtiming->equ,curtiming->acv,curtiming->prbOdd,curtiming->prbEven,curtiming->psbOdd,curtiming->psbEven,HorVer.black);
+	_CPU_ISR_Restore(level);
 }

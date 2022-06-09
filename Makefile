@@ -88,13 +88,13 @@ MACHDEP		:= -DBIGENDIAN -DGEKKO -mcpu=750 -meabi -msdata=eabi -mhard-float -ffun
 
 
 ifeq ($(PLATFORM),wii)
-MACHDEP		+=	-DHW_RVL
 INCLUDES	+=	-I$(BASEDIR)/wii
+MACHDEP		+=	-DHW_RVL
 endif
 
 ifeq ($(PLATFORM),cube)
-MACHDEP		+=	-DHW_DOL
 INCLUDES	+=	-I$(BASEDIR)/cube
+MACHDEP		+=	-DHW_DOL
 endif
 
 CFLAGS		:= $(FALSE_POSITIVES) -DLIBOGC_INTERNAL -g -O2 -fno-strict-aliasing -Wall $(MACHDEP) $(INCLUDES)
@@ -169,10 +169,10 @@ WIIUSEOBJ	:=	classic.o dynamics.o events.o guitar_hero_3.o io.o io_wii.o ir.o \
 TINYSMBOBJ	:=	des.o md4.o ntlm.o smb.o smb_devoptab.o
 
 #---------------------------------------------------------------------------------
-ASNDLIBOBJ	:=	asndlib.o asnd_dsp_mixer.bin.o
+ASNDLIBOBJ	:=	asndlib.o
 
 #---------------------------------------------------------------------------------
-AESNDLIBOBJ	:=	aesndlib.o aesnd_dsp_mixer.bin.o
+AESNDLIBOBJ	:=	aesndlib.o
 
 #---------------------------------------------------------------------------------
 ISOLIBOBJ	:=	iso9660.o
@@ -220,30 +220,23 @@ gc/ogc/libversion.h : Makefile
 	@echo >> $@
 	@echo "#endif // __LIBVERSION_H__" >> $@
 
-asndlib.o: asnd_dsp_mixer.bin.o asnd_dsp_mixer_bin.h
-aesndlib.o: aesnd_dsp_mixer.bin.o aesnd_dsp_mixer_bin.h
+#---------------------------------------------------------------------------------
+asndlib.o: asnd_dsp_mixer.h
+#---------------------------------------------------------------------------------
+aesndlib.o: aesnddspmixer.h
+#---------------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------------
-aesnd_dsp_mixer_bin.h aesnd_dsp_mixer.bin.o: aesnd_dsp_mixer.bin
-	@echo $(notdir $<)
-	@$(bin2o)
-
+asnd_dsp_mixer.h: $(LIBASNDDIR)/dsp_mixer/dsp_mixer.s
 #---------------------------------------------------------------------------------
-asnd_dsp_mixer_bin.h asnd_dsp_mixer.bin.o: asnd_dsp_mixer.bin
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#---------------------------------------------------------------------------------
-aesnd_dsp_mixer.bin: $(LIBAESNDDIR)/dspcode/dspmixer.s
 	@echo $(notdir $<)
 	@gcdsptool -c $< -o $@
 
 #---------------------------------------------------------------------------------
-asnd_dsp_mixer.bin: $(LIBASNDDIR)/dsp_mixer/dsp_mixer.s
+aesnddspmixer.h: $(LIBAESNDDIR)/dspcode/dspmixer.s
+#---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@gcdsptool -c $< -o $@
-
-
 
 #---------------------------------------------------------------------------------
 $(BBALIB).a: $(LWIPOBJ)
@@ -311,8 +304,8 @@ dist: wii cube install-headers
 #---------------------------------------------------------------------------------
 	@tar    --exclude=*CVS* --exclude=.svn --exclude=wii --exclude=cube --exclude=*deps* \
 		--exclude=*.bz2  --exclude=*include* --exclude=*lib/* --exclude=*docs/*\
-		-cvjf libogc-src-$(VERSTRING).tar.bz2 *
-	@tar -cvjf libogc-$(VERSTRING).tar.bz2 include lib libogc_license.txt
+		-cvjf libogc2-src-$(VERSTRING).tar.bz2 *
+	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib libogc_license.txt gamecube_rules wii_rules
 
 
 LIBRARIES	:=	$(OGCLIB).a  $(MODLIB).a $(DBLIB).a \
@@ -341,6 +334,6 @@ clean:
 #---------------------------------------------------------------------------------
 docs: install-headers
 #---------------------------------------------------------------------------------
-	doxygen libogc.dox
+	doxygen Doxyfile
 
 -include $(DEPSDIR)/*.d

@@ -581,3 +581,4 @@ select_format:
 	cw		ACCL_GAIN_8BIT
 	cw		ACCL_FMT_16BIT
 	cw		ACCL_GAIN_16BIT
+	

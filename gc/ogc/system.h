@@ -109,7 +109,7 @@ distribution.
 /*!
  * \sram video flags
  */
- 
+
 #define SYS_VIDEO_NTSC					0
 #define SYS_VIDEO_PAL					1
 #define SYS_VIDEO_MPAL					2
@@ -117,13 +117,28 @@ distribution.
 /*!
  * \sram audio flags
  */
- 
+
 #define SYS_SOUND_MONO					0
 #define SYS_SOUND_STEREO				1
 
 /*!
  *@}
  */
+
+#define SYS_LANG_ENGLISH				0
+#define SYS_LANG_GERMAN					1
+#define SYS_LANG_FRENCH					2
+#define SYS_LANG_SPANISH				3
+#define SYS_LANG_ITALIAN				4
+#define SYS_LANG_DUTCH					5
+#define SYS_LANG_JAPANESE				6
+
+#define SYS_SOUND_MONO					0
+#define SYS_SOUND_STEREO				1
+
+#define SYS_VIDEO_NTSC					0
+#define SYS_VIDEO_PAL					1
+#define SYS_VIDEO_MPAL					2
 
 #define SYS_FONTSIZE_ANSI				(288 + 131072)
 #define SYS_FONTSIZE_SJIS				(3840 + 1179648)
@@ -189,7 +204,8 @@ struct _syssram {
 	u8 ntd;
 	u8 lang;
 	u8 flags;
-};
+} ATTRIBUTE_PACKED;
+
 
 /*!
  * \typedef struct _syssramex syssramex
@@ -280,6 +296,8 @@ void SYS_StartPMC(u32 mcr0val,u32 mcr1val);
 void SYS_DumpPMC(void);
 void SYS_StopPMC(void);
 void SYS_ResetPMC(void);
+f32 SYS_GetCoreMultiplier(void);
+s8 SYS_GetCoreTemperature(void);
 
 
 /*! \fn s32 SYS_CreateAlarm(syswd_t *thealarm)
@@ -335,6 +353,8 @@ u32 SYS_GetCounterBias(void);
 void SYS_SetCounterBias(u32 bias);
 s8 SYS_GetDisplayOffsetH(void);
 void SYS_SetDisplayOffsetH(s8 offset);
+u8 SYS_GetBootMode(void);
+void SYS_SetBootMode(u8 mode);
 u8 SYS_GetEuRGB60(void);
 void SYS_SetEuRGB60(u8 enable);
 u8 SYS_GetLanguage(void);

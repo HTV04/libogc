@@ -128,8 +128,8 @@ static __inline__ void __exi_setinterrupts(s32 nChn,exibus_priv *exi)
 		__MaskIrq(IRQMASK(IRQ_EXI1_EXI));
 		if(!(exi->flags&EXI_FLAG_LOCKED) && exi->CallbackEXI) __UnmaskIrq(IRQMASK(IRQ_EXI1_EXI));
 	} else if(nChn==EXI_CHANNEL_2) {				//explicitly use of channel 2 only if debugger is attached.
-		__MaskIrq(IRQMASK(IRQ_EXI0_EXI));
-		if(!(exi->flags&EXI_FLAG_LOCKED) && IRQ_GetHandler(IRQ_PI_DEBUG)) __UnmaskIrq(IRQMASK(IRQ_EXI2_EXI));
+		__MaskIrq(IRQMASK(IRQ_PI_DEBUG));
+		if(!(exi->flags&EXI_FLAG_LOCKED) && IRQ_GetHandler(IRQ_PI_DEBUG)) __UnmaskIrq(IRQMASK(IRQ_PI_DEBUG));
 	}
 }
 
@@ -167,6 +167,7 @@ static s32 __exi_probe(s32 nChn)
 #ifdef _EXI_DEBUG
 	printf("__exi_probe(%d)\n",nChn);
 #endif
+	if(nChn==EXI_CHANNEL_2) return ret;
 	_CPU_ISR_Disable(level);
 	val = _exiReg[nChn*5];
 	if(!(exi->flags&EXI_FLAG_ATTACH)) {
@@ -343,8 +344,7 @@ s32 EXI_Select(s32 nChn,s32 nDev,s32 nFrq)
 
 s32 EXI_SelectSD(s32 nChn,s32 nDev,s32 nFrq)
 {
-	u32 val,id;
-	s32 ret;
+	u32 val;
 	u32 level;
 	exibus_priv *exi = &eximap[nChn];
 #ifdef _EXI_DEBUG
@@ -362,10 +362,7 @@ s32 EXI_SelectSD(s32 nChn,s32 nDev,s32 nFrq)
 
 	if(nChn!=EXI_CHANNEL_2) {
 		if(nDev==EXI_DEVICE_0 && !(exi->flags&EXI_FLAG_ATTACH)) {
-			if((ret=__exi_probe(nChn))==1) {
-				if(!exi->exi_idtime) ret = EXI_GetID(nChn,EXI_DEVICE_0,&id);
-			}
-			if(ret==0) {
+			if(EXI_Probe(nChn)==0) {
 				_CPU_ISR_Restore(level);
 				return 0;
 			}
@@ -545,7 +542,7 @@ s32 EXI_Dma(s32 nChn,void *pData,u32 nLen,u32 nMode,EXICallback tc_cb)
 	exi->imm_len = 0;
 	exi->flags |= EXI_FLAG_DMA;
 
-	_exiReg[nChn*5+1] = (u32)pData&0x03FFFFE0;
+	_exiReg[nChn*5+1] = (u32)pData&0x1FFFFFE0;
 	_exiReg[nChn*5+2] = nLen;
 	_exiReg[nChn*5+3] = ((nMode&0x03)<<2)|0x03;
 
@@ -605,10 +602,14 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 
 	if(ret) {
 		if(EXI_Select(nChn,nDev,EXI_SPEED1MHZ)==1) {
-			reg = 0;
+			reg = 0x0000<<16;
 			EXI_Imm(nChn,&reg,2,EXI_WRITE,NULL);
 			EXI_Sync(nChn);
-			EXI_Imm(nChn,nId,4,EXI_READ,NULL);
+			*nId = 0xffffffff;
+			EXI_Imm(nChn,nId,4,EXI_READWRITE,NULL);
+			EXI_Sync(nChn);
+			reg = 0xffff<<16;
+			EXI_Imm(nChn,&reg,2,EXI_WRITE,NULL);
 			EXI_Sync(nChn);
 			EXI_Deselect(nChn);
 			EXI_Unlock(nChn);
@@ -631,6 +632,95 @@ s32 EXI_GetID(s32 nChn,s32 nDev,u32 *nId)
 #endif
 	}
 	return ret;
+}
+
+s32 EXI_GetType(s32 nChn,s32 nDev,u32 *nType)
+{
+	u32 nId;
+	s32 ret;
+
+	if((ret=EXI_GetID(nChn,nDev,&nId))==0) return ret;
+
+	switch(nId&~0xff) {
+		case 0x04020100:
+		case 0x04020200:
+		case 0x04020300:
+		case 0x04060000:
+			*nType = nId&~0xff;
+			return ret;
+	}
+	switch(nId&~0xffff) {
+		case 0:
+			if(nId&0x3803) break;
+			switch(nId&0xfc) {
+				case EXI_MEMCARD59:
+				case EXI_MEMCARD123:
+				case EXI_MEMCARD251:
+				case EXI_MEMCARD507:
+				case EXI_MEMCARD1019:
+				case EXI_MEMCARD2043:
+					*nType = nId&0xfc;
+					return ret;
+			}
+			break;
+		case 0x05070000:
+			*nType = nId&~0xffff;
+			return ret;
+	}
+	*nType = nId;
+	return ret;
+}
+
+char *EXI_GetTypeString(u32 nType)
+{
+	switch(nType) {
+		case EXI_MEMCARD59:
+			return "Memory Card 59";
+		case EXI_MEMCARD123:
+			return "Memory Card 123";
+		case EXI_MEMCARD251:
+			return "Memory Card 251";
+		case EXI_MEMCARD507:
+			return "Memory Card 507";
+		case EXI_MEMCARD1019:
+			return "Memory Card 1019";
+		case EXI_MEMCARD2043:
+			return "Memory Card 2043";
+		case 0x01010000:
+			return "USB Adapter";
+		case 0x01020000:
+			return "GDEV";
+		case 0x02020000:
+			return "Modem";
+		case 0x03010000:
+			return "Marlin";
+		case 0x04120000:
+			return "AD16";
+		case 0x04040404:
+			return "RS232C";
+		case 0x80000004:
+		case 0x80000008:
+		case 0x80000010:
+		case 0x80000020:
+		case 0x80000040:
+		case 0x80000080:
+			return "Net Card";
+		case 0x04220001:
+			return "Artist Ether";
+		case 0x04220000:
+		case 0x04020100:
+		case 0x04020200:
+		case 0x04020300:
+			return "Broadband Adapter";
+		case 0x04060000:
+			return "Mic";
+		case 0x04130000:
+			return "Stream Hanger";
+		case 0x05070000:
+			return "IS-DOL-VIEWER";
+		default:
+			return "Unknown";
+	}
 }
 
 s32 EXI_Attach(s32 nChn,EXICallback ext_cb)
@@ -887,9 +977,9 @@ void __SYS_EnableBarnacle(s32 chn,u32 dev)
 	if(EXI_GetID(chn,dev,&id)==0) return;
 
 	if(id==0x01020000 || id==0x0004 || id==0x80000010 || id==0x80000008
-		|| id==0x80000004 || id==0xffff || id==0x80000020 || id==0x0020
+		|| id==0x80000004 || id==0xffffffff || id==0x80000020 || id==0x0020
 		|| id==0x0010 || id==0x0008 || id==0x01010000 || id==0x04040404
-		|| id==0x04021000 || id==0x03010000 || id==0x02020000
+		|| id==0x04020100 || id==0x03010000 || id==0x02020000
 		|| id==0x04020300 || id==0x04020200 || id==0x04130000
 		|| id==0x04120000 || id==0x04060000 || id==0x04220000) return;
 

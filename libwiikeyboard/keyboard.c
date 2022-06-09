@@ -103,8 +103,8 @@ typedef struct {
 
 static keyPressCallback _readKey_cb = NULL;
 
-static u8 *_kbd_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
-static u8 *_kbd_buf_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
+static u8 _kbd_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
+static u8 _kbd_buf_stack[KBD_THREAD_STACKSIZE] ATTRIBUTE_ALIGN(8);
 
 static kbd_t _get_keymap_by_name(const char *identifier) {
 	char name[64];
@@ -559,7 +559,7 @@ s32 KEYBOARD_Init(keyPressCallback keypress_cb)
 		// start the keyboard thread
 		_kbd_thread_quit = false;
 
-		memset(_kbd_stack, 0, KBD_THREAD_STACKSIZE * sizeof(_kbd_stack[0]));
+		memset(_kbd_stack, 0, KBD_THREAD_STACKSIZE);
 
 		s32 res = LWP_CreateThread(&_kbd_thread, _kbd_thread_func, NULL,
 									_kbd_stack, KBD_THREAD_STACKSIZE,

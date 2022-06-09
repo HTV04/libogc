@@ -945,10 +945,11 @@
 
 
 /*! \addtogroup copymode EFB copy mode
- * \brief Controls whether all lines, only even lines, or only odd lines are copied from the EFB.
+ * \brief Controls whether all lines, no lines, only even lines, or only odd lines are copied from the EFB.
  * @{
  */
 #define GX_COPY_PROGRESSIVE				0
+#define GX_COPY_NONE					1
 #define GX_COPY_INTLC_EVEN				2
 #define GX_COPY_INTLC_ODD				3
 /*! @} */
@@ -2967,6 +2968,19 @@ void GX_SetClipMode(u8 mode);
 void GX_SetScissor(u32 xOrigin,u32 yOrigin,u32 wd,u32 ht);
 
 /*!
+ * \fn void GX_GetScissor(u32 *xOrigin,u32 *yOrigin,u32 *wd,u32 *ht)
+ * \brief This function returns the scissor box in the current screen coordinates.
+ *
+ * \param[out] xOrigin Returns the left-most coordinate of the scissor box in screen coordinates
+ * \param[out] yOrigin Returns the top-most coordinate of the scissor box in screen coordinates
+ * \param[out] wd Returns the width of the scissor box width in screen coordinates
+ * \param[out] ht Returns the height of the scissor box in screen coordinates
+ *
+ * \return none
+ */
+void GX_GetScissor(u32 *xOrigin,u32 *yOrigin,u32 *wd,u32 *ht);
+
+/*!
  * \fn void GX_SetScissorBoxOffset(s32 xoffset,s32 yoffset)
  * \brief Repositions the scissorbox rectangle within the Embedded Frame Buffer (EFB) memory space.
  *
@@ -3574,6 +3588,17 @@ void GX_SetFieldMask(u8 even_mask,u8 odd_mask);
 void GX_SetFieldMode(u8 field_mode,u8 half_aspect_ratio);
 
 /*!
+ * \fn u16 GX_GetNumXfbLines(u16 efbHeight,f32 yscale)
+ * \brief Calculates the number of lines copied to the XFB, based on given EFB height and Y scale.
+ *
+ * \param[in] efbHeight Height of embedded framebuffer. Range from 2 to 528. Should be a multiple of 2.
+ * \param[in] yscale Vertical scale value. Range from 1.0 to 256.0.
+ *
+ * \return Number of lines that will be copied.
+ */
+u16 GX_GetNumXfbLines(u16 efbHeight,f32 yscale);
+
+/*!
  * \fn f32 GX_GetYScaleFactor(u16 efbHeight,u16 xfbHeight)
  * \brief Calculates an appropriate Y scale factor value for GX_SetDispCopyYScale() based on the height of the EFB and
  *        the height of the XFB.
@@ -3999,7 +4024,43 @@ void GX_PeekZ(u16 x,u16 y,u32 *z);
 void GX_PokeZMode(u8 comp_enable,u8 func,u8 update_enable);
 
 /*!
- * \fn u32 GX_GetTexObjFmt(GXTexObj *obj)
+ * \fn void* GX_GetTexObjData(GXTexObj *obj)
+ * \brief Used to get a pointer to texture data from the \ref GXTexObj structure.
+ *
+ * \note The returned pointer is a physical address.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return Physical pointer to texture data.
+ */
+void* GX_GetTexObjData(GXTexObj *obj);
+
+/*!
+ * \fn u16 GX_GetTexObjWidth(GXTexObj *obj)
+ * \brief Returns the texture width described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture width.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return texture width
+ */
+u16 GX_GetTexObjWidth(GXTexObj *obj);
+
+/*!
+ * \fn u16 GX_GetTexObjHeight(GXTexObj *obj)
+ * \brief Returns the texture height described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture height.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return texture height
+ */
+u16 GX_GetTexObjHeight(GXTexObj *obj);
+
+/*!
+ * \fn u8 GX_GetTexObjFmt(GXTexObj *obj)
  * \brief Returns the texture format described by texture object \a obj.
  *
  * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture format.
@@ -4008,10 +4069,34 @@ void GX_PokeZMode(u8 comp_enable,u8 func,u8 update_enable);
  *
  * \return texture format of the given texture object
  */
-u32 GX_GetTexObjFmt(GXTexObj *obj);
+u8 GX_GetTexObjFmt(GXTexObj *obj);
 
 /*!
- * \fn u32 GX_GetTexObjMipMap(GXTexObj *obj)
+ * \fn u8 GX_GetTexObjWrapS(GXTexObj *obj)
+ * \brief Returns the texture wrap s mode described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture wrap s mode.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return wrap s mode
+ */
+u8 GX_GetTexObjWrapS(GXTexObj *obj);
+
+/*!
+ * \fn u8 GX_GetTexObjWrapT(GXTexObj *obj)
+ * \brief Returns the texture wrap t mode described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture wrap t mode.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return wrap t mode
+ */
+u8 GX_GetTexObjWrapT(GXTexObj *obj);
+
+/*!
+ * \fn u8 GX_GetTexObjMipMap(GXTexObj *obj)
  * \brief Returns the texture mipmap enable described by texture object \a obj.
  *
  * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture mipmap enable.
@@ -4020,7 +4105,7 @@ u32 GX_GetTexObjFmt(GXTexObj *obj);
  *
  * \return mipmap enable flag
  */
-u32 GX_GetTexObjMipMap(GXTexObj *obj);
+u8 GX_GetTexObjMipMap(GXTexObj *obj);
 
 /*!
  * \fn void* GX_GetTexObjUserData(GXTexObj *obj)
@@ -4035,79 +4120,81 @@ u32 GX_GetTexObjMipMap(GXTexObj *obj);
 void* GX_GetTexObjUserData(GXTexObj *obj);
 
 /*!
- * \fn void* GX_GetTexObjData(GXTexObj *obj)
- * \brief Used to get a pointer to texture data from the \ref GXTexObj structure.
+ * \fn u32 GX_GetTexObjTlut(GXTexObj *obj)
+ * \brief Returns the TLUT name associated with texture object \a obj.
  *
- * \note The returned pointer is a physical address.
+ * \note Use GX_InitTexObjCI() to initialize a texture object with the desired TLUT name.
  *
- * \param[in] obj ptr to a texture object
- *
- * \return Physical pointer to texture data.
- */
-void* GX_GetTexObjData(GXTexObj *obj);
-
-/*!
- * \fn u8 GX_GetTexObjWrapS(GXTexObj* obj)
- * \brief Returns the texture wrap s mode described by texture object \a obj.
- *
- * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture wrap s mode.
+ * \note Use GX_InitTexObjTlut() to modify the TLUT associated with an existing texture object.
  *
  * \param[in] obj ptr to a texture object
  *
- * \return wrap s mode
+ * \return TLUT name associated with this texture object
  */
-u8 GX_GetTexObjWrapS(GXTexObj* obj);
+u32 GX_GetTexObjTlut(GXTexObj *obj);
 
 /*!
- * \fn u8 GX_GetTexObjWrapT(GXTexObj* obj)
- * \brief Returns the texture wrap t mode described by texture object \a obj.
- *
- * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture wrap t mode.
- *
- * \param[in] obj ptr to a texture object
- *
- * \return wrap t mode
- */
-u8 GX_GetTexObjWrapT(GXTexObj* obj);
-
-/*!
- * \fn u16 GX_GetTexObjHeight(GXTexObj* obj)
- * \brief Returns the texture height described by texture object \a obj.
- *
- * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture height.
- *
- * \param[in] obj ptr to a texture object
- *
- * \return texture height
- */
-u16 GX_GetTexObjHeight(GXTexObj* obj);
-
-/*!
- * \fn u16 GX_GetTexObjWidth(GXTexObj* obj)
- * \brief Returns the texture width described by texture object \a obj.
- *
- * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture width.
- *
- * \param[in] obj ptr to a texture object
- *
- * \return texture width
- */
-u16 GX_GetTexObjWidth(GXTexObj* obj);
-
-/*!
- * \fn void GX_GetTexObjAll(GXTexObj* obj, void** image_ptr, u16* width, u16* height, u8* format, u8* wrap_s, u8* wrap_t, u8* mipmap);
+ * \fn void GX_GetTexObjAll(GXTexObj *obj,void **img_ptr,u16 *wd,u16 *ht,u8 *fmt,u8 *wrap_s,u8 *wrap_t,u8 *mipmap);
  * \brief Returns the parameters described by a texture object. Texture objects are used to describe all the parameters associated with a texture, including size, format, wrap modes, filter modes, etc. Texture objects are initialized using either GX_InitTexObj() or, for color index format textures, GX_InitTexObjCI().
  *
  * \param[in] obj ptr to a texture object
- * \param[out] image_ptr Returns a physical pointer to the image data for a texture.
- * \param[out] width Returns the width of the texture or LOD 0 for mipmaps
- * \param[out] height Returns the height of the texture or LOD 0 for mipmaps
- * \param[out] format Returns the texel format
+ * \param[out] img_ptr Returns a physical pointer to the image data for a texture.
+ * \param[out] wd Returns the width of the texture or LOD 0 for mipmaps
+ * \param[out] ht Returns the height of the texture or LOD 0 for mipmaps
+ * \param[out] fmt Returns the texel format
+ * \param[out] wrap_s Returns the mode which describes how texture coordinates will be wrapped in the S direction
+ * \param[out] wrap_t Returns the mode which describes how texture coordinates will be wrapped in the T direction
  * \param[out] mipmap Returns the mipmap enable flag.
  *
  * \return none
  */
-void GX_GetTexObjAll(GXTexObj* obj, void** image_ptr, u16* width, u16* height, u8* format, u8* wrap_s, u8* wrap_t, u8* mipmap);
+void GX_GetTexObjAll(GXTexObj *obj,void **img_ptr,u16 *wd,u16 *ht,u8 *fmt,u8 *wrap_s,u8 *wrap_t,u8 *mipmap);
+
+/*!
+ * \fn void GX_GetTexObjLODAll(GXTexObj *obj,u8 *minfilt,u8 *magfilt,f32 *minlod,f32 *maxlod,f32 *lodbias,u8 *biasclamp,u8 *edgelod,u8 *maxaniso)
+ * \brief Returns the LOD-related parameters described by a texture object. Texture objects are used to describe all the parameters associated with a texture, including size, format, wrap modes, filter modes, etc. Texture objects are initialized using either GX_InitTexObj() or, for color index format textures, GXInitTexObjCI(). The LOD-related parameters are set using GX_InitTexObjLOD().
+ *
+ * \param[in] obj ptr to a texture object
+ * \param[out] minfilt Returns the minification filter from the texture object
+ * \param[out] magfilt Returns the magnification filter
+ * \param[out] minlod Returns the minimum LOD bound
+ * \param[out] maxlod Returns the maximum LOD bound
+ * \param[out] lodbias Returns the LOD bias control
+ * \param[out] biasclamp Returns the LOD bias clamping parameter
+ * \param[out] edgelod Returns whether or not edge LOD has been enabled
+ * \param[out] maxaniso Returns the anisotropic filtering setting
+ *
+ * \return none
+ */
+void GX_GetTexObjLODAll(GXTexObj *obj,u8 *minfilt,u8 *magfilt,f32 *minlod,f32 *maxlod,f32 *lodbias,u8 *biasclamp,u8 *edgelod,u8 *maxaniso);
+
+u8 GX_GetTexObjMinFilt(GXTexObj *obj);
+u8 GX_GetTexObjMagFilt(GXTexObj *obj);
+f32 GX_GetTexObjMinLOD(GXTexObj *obj);
+f32 GX_GetTexObjMaxLOD(GXTexObj *obj);
+f32 GX_GetTexObjLODBias(GXTexObj *obj);
+u8 GX_GetTexObjBiasClamp(GXTexObj *obj);
+u8 GX_GetTexObjEdgeLOD(GXTexObj *obj);
+u8 GX_GetTexObjMaxAniso(GXTexObj *obj);
+
+void* GX_GetTlutObjData(GXTlutObj *obj);
+u8 GX_GetTlutObjFmt(GXTlutObj *obj);
+u16 GX_GetTlutObjNumEntries(GXTlutObj *obj);
+
+/*!
+ * \fn void GX_GetTlutObjAll(GXTlutObj *obj,void **lut,u8 *fmt,u16 *entries)
+ * \brief Returns all the parameters describing a Texture Look-Up Table (TLUT) object.
+ *
+ * \details The TLUT object describes the location of the TLUT in main memory, its format and the number of entries.
+ *
+ * \param[in] obj ptr to a TLUT object
+ * \param[out] lut Returns a physical pointer to the look-up table data
+ * \param[out] fmt Returns the format of the entries in the TLUT
+ * \param[out] entries Returns the number of entries in the TLUT
+ *
+ * \return none
+ */
+void GX_GetTlutObjAll(GXTlutObj *obj,void **lut,u8 *fmt,u16 *entries);
 
 /*!
  * \fn u32 GX_GetTexBufferSize(u16 wd,u16 ht,u32 fmt,u8 mipmap,u8 maxlod)

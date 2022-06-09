@@ -257,21 +257,18 @@ static __inline__ void __lwp_syswd_free(alarm_st *alarm)
 	__lwp_objmgr_free(&sys_alarm_objects,&alarm->object);
 }
 
-#ifdef HW_DOL
-#define SOFTRESET_ADR *((vu32*)0xCC003024)
-void __reload(void) { SOFTRESET_ADR=0; }
-
-void __libogc_exit(int status)
-{
-	SYS_ResetSystem(SYS_SHUTDOWN,0,0);
-	__lwp_thread_stopmultitasking(__reload);
-}
-#else
+#if defined(HW_DOL)
+static void __dohotreset(u32 resetcode);
+#endif
 static void (*reload)(void) = (void(*)(void))0x80001800;
 
 static bool __stub_found(void)
 {
-	u64 sig = ((u64)(*(u32*)0x80001804) << 32) + *(u32*)0x80001808;
+#if defined(HW_DOL)
+	u64 sig = *(u64*)0x80001808;
+#else
+	u64 sig = *(u64*)0x80001804;
+#endif
 	if (sig == 0x5354554248415858ULL) // 'STUBHAXX'
 		return true;
 	return false;
@@ -283,20 +280,25 @@ void __reload(void)
 		__exception_closeall();
 		reload();
 	}
-	SYS_ResetSystem(SYS_RETURNTOMENU, 0, 0);
+#if defined(HW_DOL)
+	__dohotreset(0);
+#else
+	STM_RebootSystem();
+#endif
 }
 
 void __libogc_exit(int status)
 {
 	if(__stub_found()) {
-		SYS_ResetSystem(SYS_SHUTDOWN,0,0);
+		SYS_ResetSystem(SYS_SHUTDOWN, 0, FALSE);
 		__lwp_thread_stopmultitasking(reload);
 	}
-	SYS_ResetSystem(SYS_RETURNTOMENU, 0, 0);
-}
-
+#if defined(HW_DOL)
+	SYS_ResetSystem(SYS_HOTRESET, 0, FALSE);
+#else
+	SYS_ResetSystem(SYS_RETURNTOMENU, 0, FALSE);
 #endif
-
+}
 
 void *__syscall_sbrk_r(struct _reent *ptr, ptrdiff_t incr) {
 	return __libogc_sbrk_r(ptr, incr);
@@ -443,7 +445,7 @@ static void __RSWHandler(u32 irq, void* ctx)
 	static s64 hold_down = 0;
 
 	hold_down = gettime();
-	do  {
+	do {
 		now = gettime();
 		if(diff_usec(hold_down,now)>=100) break;
 	} while(!SYS_ResetButtonDown());
@@ -740,7 +742,8 @@ static u32 __unlocksram(u32 write,u32 loc)
 
 	if(write) {
 		if(!loc) {
-			if((sram->flags&SRAM_VIDEO_MODE_BITS) > 0x02) sram->flags &= ~SRAM_VIDEO_MODE_BITS;
+			if(sram->lang>SYS_LANG_DUTCH) sram->lang = SYS_LANG_ENGLISH;
+			if((sram->flags&SRAM_VIDEO_MODE_BITS)>SYS_VIDEO_MPAL) sram->flags = (sram->flags&~SRAM_VIDEO_MODE_BITS)|(SYS_VIDEO_NTSC&SRAM_VIDEO_MODE_BITS);
 			__buildchecksum((u16*)sramcntrl.srambuf,&sram->checksum,&sram->checksum_inv);
 		}
 		if(loc<sramcntrl.offset) sramcntrl.offset = loc;
@@ -942,6 +945,17 @@ u32 __SYS_SyncSram(void)
 	return __sram_sync();
 }
 
+u32 __SYS_CheckSram(void)
+{
+	u16 checksum,checksum_inv;
+	syssram *sram = (syssram*)sramcntrl.srambuf;
+
+	__buildchecksum((u16*)sramcntrl.srambuf,&checksum,&checksum_inv);
+
+	if(sram->checksum!=checksum || sram->checksum_inv!=checksum_inv) return 0;
+	return 1;
+}
+
 void __SYS_ReadROM(void *buf,u32 len,u32 offset)
 {
 	u32 cpy_cnt;
@@ -974,6 +988,29 @@ u32 __SYS_GetRTC(u32 *gctime)
 		cnt++;
 	}
 	return 0;
+}
+
+u32 __SYS_SetRTC(u32 gctime)
+{
+	u32 cmd,ret;
+
+	if(EXI_Lock(EXI_CHANNEL_0,EXI_DEVICE_1,NULL)==0) return 0;
+	if(EXI_Select(EXI_CHANNEL_0,EXI_DEVICE_1,EXI_SPEED8MHZ)==0) {
+		EXI_Unlock(EXI_CHANNEL_0);
+		return 0;
+	}
+
+	ret = 0;
+	cmd = 0xa0000000;
+	if(EXI_Imm(EXI_CHANNEL_0,&cmd,4,EXI_WRITE,NULL)==0) ret |= 0x01;
+	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x02;
+	if(EXI_Imm(EXI_CHANNEL_0,&gctime,4,EXI_WRITE,NULL)==0) ret |= 0x04;
+	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x08;
+	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x10;
+	EXI_Unlock(EXI_CHANNEL_0);
+
+	if(ret) return 0;
+	return 1;
 }
 
 void __SYS_SetBootTime(void)
@@ -1677,7 +1714,8 @@ u32 SYS_GetCounterBias(void)
 	syssram *sram;
 
 	sram = __SYS_LockSram();
-	bias = sram->counter_bias;
+	if(!(sram->flags&SRAM_OOBE_DONE_BIT)) bias = 0;
+	else bias = sram->counter_bias;
 	__SYS_UnlockSram(0);
 	return bias;
 }
@@ -1689,8 +1727,9 @@ void SYS_SetCounterBias(u32 bias)
 
 	write = 0;
 	sram = __SYS_LockSram();
-	if(sram->counter_bias!=bias) {
+	if(sram->counter_bias!=bias || !(sram->flags&SRAM_OOBE_DONE_BIT)) {
 		sram->counter_bias = bias;
+		sram->flags |= 0x28;
 		write = 1;
 	}
 	__SYS_UnlockSram(write);
@@ -1716,6 +1755,31 @@ void SYS_SetDisplayOffsetH(s8 offset)
 	sram = __SYS_LockSram();
 	if(sram->display_offsetH!=offset) {
 		sram->display_offsetH = offset;
+		write = 1;
+	}
+	__SYS_UnlockSram(write);
+}
+
+u8 SYS_GetBootMode(void)
+{
+	u8 mode;
+	syssram *sram;
+
+	sram = __SYS_LockSram();
+	mode = (sram->ntd&0x80);
+	__SYS_UnlockSram(0);
+	return mode;
+}
+
+void SYS_SetBootMode(u8 mode)
+{
+	u32 write;
+	syssram *sram;
+
+	write = 0;
+	sram = __SYS_LockSram();
+	if((sram->ntd&0x80)!=mode) {
+		sram->ntd = (sram->ntd&~0x80)|(mode&0x80);
 		write = 1;
 	}
 	__SYS_UnlockSram(write);
@@ -1907,6 +1971,67 @@ u32 SYS_GetHollywoodRevision(void)
 }
 #endif
 
+f32 SYS_GetCoreMultiplier(void)
+{
+	u32 pvr,hid1;
+
+	const f32 pll_cfg_table4[] = {
+		 2.5,  7.5,  7.0,  1.0,
+		 2.0,  6.5, 10.0,  4.5,
+		 3.0,  5.5,  4.0,  5.0,
+		 8.0,  6.0,  3.5,  0.0
+	};
+	const f32 pll_cfg_table5[] = {
+		 0.0,  0.0,  5.0,  1.0,  2.0,  2.5,  3.0,  3.5,  4.0,  4.5,
+		 5.0,  5.5,  6.0,  6.5,  7.0,  7.5,  8.0,  8.5,  9.0,  9.5,
+		10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0,
+		20.0,  0.0
+	};
+
+	pvr = mfpvr();
+	hid1 = mfhid1();
+	switch(_SHIFTR(pvr,20,12)) {
+		case 0x000:
+			switch(_SHIFTR(pvr,16,4)) {
+				case 0x8:
+					switch(_SHIFTR(pvr,12,4)) {
+						case 0x7:
+							return pll_cfg_table5[_SHIFTR(hid1,27,5)];
+						default:
+							return pll_cfg_table4[_SHIFTR(hid1,28,4)];
+					}
+					break;
+			}
+			break;
+		case 0x700:
+			return pll_cfg_table5[_SHIFTR(hid1,27,5)];
+	}
+	return 0.0;
+}
+
+s8 SYS_GetCoreTemperature(void)
+{
+	s32 i,ret;
+	u32 pvr,thrm;
+
+	pvr = mfpvr();
+	if(_SHIFTR(pvr,16,16)!=0x8 || _SHIFTR(pvr,12,4)==0x7) return -1;
+	mtthrm3((_SHIFTL(0x04,25,5)|_SHIFTL(8000,1,13)|1));
+
+	i = 5;
+	ret = 64;
+	while(i--) {
+		mtthrm2((_SHIFTL(ret,23,7)|1));
+		do {
+			thrm = mfthrm2();
+		} while(!(thrm&0x40000000));
+		if(thrm&0x80000000) ret += (2<<i);
+		else ret -= (2<<i);
+	}
+	mtthrm2(0);
+	return ret;
+}
+
 u64 SYS_Time(void)
 {
 	u64 current_time = 0;
@@ -1918,9 +2043,7 @@ u64 SYS_Time(void)
 	if (CONF_GetCounterBias(&bias) >= 0)
 		current_time += bias;
 #else
-	syssram* sram = __SYS_LockSram();
-	current_time += sram->counter_bias;
-	__SYS_UnlockSram(0);
+	current_time += SYS_GetCounterBias();
 #endif
 	return (TB_TIMER_CLOCK * 1000) * current_time;
 }

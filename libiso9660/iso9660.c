@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <malloc.h>
 #include <sys/dir.h>
 #include <sys/iosupport.h>
 
@@ -171,8 +172,6 @@ static void stat_entry(DIR_ENTRY *entry, struct stat *st)
 	st->st_ctime = 0;
 	st->st_blksize = SECTOR_SIZE;
 	st->st_blocks = (entry->size + SECTOR_SIZE - 1) / SECTOR_SIZE;
-	st->st_spare4[0] = 0;
-	st->st_spare4[1] = 0;
 }
 
 static char* basename(char *path)
@@ -924,7 +923,7 @@ static MOUNT_DESCR *_ISO9660_mdescr_constructor(const DISC_INTERFACE *disc_inter
 {
 	MOUNT_DESCR *mdescr = NULL;
 
-	mdescr = malloc(sizeof(MOUNT_DESCR));
+	mdescr = memalign(32, sizeof(MOUNT_DESCR));
 	if (!mdescr)
 		return NULL;
 

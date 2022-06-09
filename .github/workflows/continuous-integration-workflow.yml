@@ -1,0 +1,32 @@
+name: libogc2 build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build libogc2
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitppc:latest
+
+    steps:
+    - name: Checkout libogc2
+      uses: actions/checkout@v2
+
+    - name: Checkout libfat
+      uses: actions/checkout@v2
+      with:
+        repository: extremscorner/libfat
+        path: libfat
+
+    - name: Build libogc2
+      run: make install
+
+    - name: Build libfat
+      run: make ogc-install
+      working-directory: libfat
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: libogc2
+        path: /opt/devkitpro/libogc2

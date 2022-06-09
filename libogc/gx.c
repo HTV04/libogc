@@ -96,6 +96,7 @@ static GXTlutRegionCallback tlut_regionCB = NULL;
 static vu32* const _piReg = (u32*)0xCC003000;
 static vu16* const _cpReg = (u16*)0xCC000000;
 static vu16* const _peReg = (u16*)0xCC001000;
+static vu16* const _memReg = (u16*)0xCC004000;
 
 static const u8 _gxtevcolid[9] = {0,1,0,1,0,1,7,5,6};
 static const u8 _gxtexmode0ids[8] = {0x80,0x81,0x82,0x83,0xA0,0xA1,0xA2,0xA3};
@@ -107,9 +108,6 @@ static const u8 _gxteximg3ids[8] = {0x94,0x95,0x96,0x97,0xB4,0xB5,0xB6,0xB7};
 static const u8 _gxtextlutids[8] = {0x98,0x99,0x9A,0x9B,0xB8,0xB9,0xBA,0xBB};
 
 #if defined(HW_RVL)
-
-static vu16* const _memReg = (u16*)0xCC004000;
-
 static const u32 _gxtexregionaddrtable[48] =
 {
 	0x00000000,0x00010000,0x00020000,0x00030000,
@@ -314,8 +312,13 @@ static void __GX_SaveFifo(void)
 
 	if(_gxcpufifoready) {
 		val = _piReg[0x05];
+#if defined(HW_DOL)
+		cpufifo->wt_ptr = (u32)MEM_PHYSICAL_TO_K0((val&0x03FFFFE0));
+		cpufifo->fifo_wrap = ((val&0x04000000)==0x04000000);
+#else
 		cpufifo->wt_ptr = (u32)MEM_PHYSICAL_TO_K0((val&0x1FFFFFE0));
 		cpufifo->fifo_wrap = ((val&0x20000000)==0x20000000);
+#endif
 	}
 
 	if(_gxgpfifoready) {
@@ -327,6 +330,7 @@ static void __GX_SaveFifo(void)
 		cpufifo->rd_ptr = gpfifo->rd_ptr;
 		cpufifo->rdwt_dst = gpfifo->rdwt_dst;
 		gpfifo->wt_ptr = cpufifo->wt_ptr;
+		gpfifo->fifo_wrap = cpufifo->fifo_wrap;
 	} else if(_gxcpufifoready) {
 		rdwt_dst = (cpufifo->wt_ptr - cpufifo->rd_ptr);
 		if(rdwt_dst<0) cpufifo->rdwt_dst = (cpufifo->rdwt_dst + cpufifo->size);
@@ -1860,6 +1864,7 @@ static void __GetImageTileCount(u32 fmt,u16 wd,u16 ht,u32 *xtiles,u32 *ytiles,u3
 		case GX_TF_RGB565:
 		case GX_TF_RGB5A3:
 		case GX_TF_RGBA8:
+		case GX_CTF_YUVA8:
 			xshift = 2;
 			yshift = 2;
 			break;
@@ -1881,7 +1886,7 @@ static void __GetImageTileCount(u32 fmt,u16 wd,u16 ht,u32 *xtiles,u32 *ytiles,u3
 	*ytiles = tile;
 
 	*zplanes = 1;
-	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8) *zplanes = 2;
+	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8 || fmt==GX_CTF_YUVA8) *zplanes = 2;
 }
 
 void GX_SetCopyClear(GXColor color,u32 zvalue)
@@ -1985,7 +1990,7 @@ u32 GX_SetDispCopyYScale(f32 yscale)
 	GX_LOAD_BP_REG(0x4e000000|yScale);
 
 	__gx->dispCopyCntrl = (__gx->dispCopyCntrl&~0x400)|(_SHIFTL(((256-yScale)>0),10,1));
-	ht = _SHIFTR(__gx->dispCopyWH,12,10)+1;
+	ht = _SHIFTR(__gx->dispCopyWH,10,10)+1;
 	return __GX_GetNumXfbLines(ht,yScale);
 }
 
@@ -2993,99 +2998,181 @@ static void __GetTexTileShift(u32 fmt,u32 *xshift,u32 *yshift)
 }
 #endif
 
-u32 GX_GetTexObjFmt(GXTexObj *obj)
-{
-	return ((struct __gx_texobj*)obj)->tex_fmt;
-}
-
-u32 GX_GetTexObjMipMap(GXTexObj *obj)
-{
-	return (((struct __gx_texobj*)obj)->tex_flag&0x01);
-}
-void* GX_GetTexObjData(GXTexObj *obj)
-{
-	return (void*)(_SHIFTL(((struct __gx_texobj*)obj)->tex_maddr & 0x00ffffff,5,24));
-}
-
-u8 GX_GetTexObjWrapS(GXTexObj* obj)
-{
-	return ((struct __gx_texobj*)obj)->tex_filt & 0x03;
-}
-
-u8 GX_GetTexObjWrapT(GXTexObj* obj)
-{
-	return _SHIFTR(((struct __gx_texobj*)obj)->tex_filt & 0x0c, 2, 2);
-}
-
-u16 GX_GetTexObjHeight(GXTexObj* obj)
-{
-	return _SHIFTR(((struct __gx_texobj*)obj)->tex_size & 0xffc00, 10, 10) + 1;
-}
-
-u16 GX_GetTexObjWidth(GXTexObj* obj)
-{
-	return (((struct __gx_texobj*)obj)->tex_size & 0x3ff) + 1;
-}
-
-
-void GX_GetTexObjAll(GXTexObj* obj, void** image_ptr, u16* width, u16* height,
-                     u8* format, u8* wrap_s, u8* wrap_t, u8* mipmap)
+void GX_GetTexObjAll(GXTexObj *obj,void **img_ptr,u16 *wd,u16 *ht,u8 *fmt,u8 *wrap_s,u8 *wrap_t,u8 *mipmap)
 {
 	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
-	*image_ptr = (void*)(_SHIFTL(ptr->tex_maddr & 0x00ffffff,5,24));
-	*width = (ptr->tex_size & 0x3ff) + 1;
-	*height = _SHIFTR(ptr->tex_size & 0xffc00, 10, 10) + 1;
-	*format = ptr->tex_fmt;
-	*wrap_s = ptr->tex_filt & 0x03;
-	*wrap_t = _SHIFTR(ptr->tex_filt & 0x0c, 2, 2);
-	*mipmap = ptr->tex_flag & 0x01;
+	*img_ptr = (void*)_SHIFTL(ptr->tex_maddr,5,24);
+	*wd = (ptr->tex_size&0x3ff)+1;
+	*ht = _SHIFTR(ptr->tex_size,10,10)+1;
+	*fmt = ptr->tex_fmt;
+	*wrap_s = ptr->tex_filt&0x03;
+	*wrap_t = _SHIFTR(ptr->tex_filt,2,2);
+	*mipmap = ptr->tex_flag&0x01;
 }
+
+void* GX_GetTexObjData(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return (void*)_SHIFTL(ptr->tex_maddr,5,24);
+}
+
+u16 GX_GetTexObjWidth(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return (ptr->tex_size&0x3ff)+1;
+}
+
+u16 GX_GetTexObjHeight(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_size,10,10)+1;
+}
+
+u8 GX_GetTexObjFmt(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return ptr->tex_fmt;
+}
+
+u8 GX_GetTexObjWrapS(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return ptr->tex_filt&0x03;
+}
+
+u8 GX_GetTexObjWrapT(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_filt,2,2);
+}
+
+u8 GX_GetTexObjMipMap(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return ptr->tex_flag&0x01;
+}
+
+void GX_GetTexObjLODAll(GXTexObj *obj,u8 *minfilt,u8 *magfilt,f32 *minlod,f32 *maxlod,f32 *lodbias,u8 *biasclamp,u8 *edgelod,u8 *maxaniso)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	static const u8 HW2GXFiltConv[] = {0x00,0x02,0x04,0x00,0x01,0x03,0x05,0x00};
+
+	*minfilt = HW2GXFiltConv[_SHIFTR(ptr->tex_filt,5,3)];
+	*magfilt = _SHIFTR(ptr->tex_filt,4,1);
+	*minlod = (ptr->tex_lod&0xff)/16.0f;
+	*maxlod = _SHIFTR(ptr->tex_lod,8,8)/16.0f;
+	*lodbias = (s8)_SHIFTR(ptr->tex_filt,9,8)/32.0f;
+	*biasclamp = _SHIFTR(ptr->tex_filt,21,1);
+	*edgelod = !_SHIFTR(ptr->tex_filt,8,1);
+	*maxaniso = _SHIFTR(ptr->tex_filt,19,2);
+}
+
+u8 GX_GetTexObjMinFilt(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	static const u8 HW2GXFiltConv[] = {0x00,0x02,0x04,0x00,0x01,0x03,0x05,0x00};
+
+	return HW2GXFiltConv[_SHIFTR(ptr->tex_filt,5,3)];
+}
+
+u8 GX_GetTexObjMagFilt(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_filt,4,1);
+}
+
+f32 GX_GetTexObjMinLOD(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return (ptr->tex_lod&0xff)/16.0f;
+}
+
+f32 GX_GetTexObjMaxLOD(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_lod,8,8)/16.0f;
+}
+
+f32 GX_GetTexObjLODBias(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return (s8)_SHIFTR(ptr->tex_filt,9,8)/32.0f;
+}
+
+u8 GX_GetTexObjBiasClamp(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_filt,21,1);
+}
+
+u8 GX_GetTexObjEdgeLOD(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return !_SHIFTR(ptr->tex_filt,8,1);
+}
+
+u8 GX_GetTexObjMaxAniso(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return _SHIFTR(ptr->tex_filt,19,2);
+}
+
+u32 GX_GetTexObjTlut(GXTexObj *obj)
+{
+	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
+	return ptr->tex_tlut;
+}
+
 u32 GX_GetTexBufferSize(u16 wd,u16 ht,u32 fmt,u8 mipmap,u8 maxlod)
 {
 	u32 xshift,yshift,xtiles,ytiles,bitsize,size;
 
 	switch(fmt) {
 		case GX_TF_I4:
+		case GX_TF_CI4:
 		case GX_TF_CMPR:
 		case GX_CTF_R4:
-		case GX_CTF_RA4:
 		case GX_CTF_Z4:
 			xshift = 3;
 			yshift = 3;
 			break;
-		case GX_TF_Z8:
 		case GX_TF_I8:
 		case GX_TF_IA4:
+		case GX_TF_CI8:
+		case GX_TF_Z8:
+		case GX_CTF_RA4:
 		case GX_CTF_A8:
 		case GX_CTF_R8:
 		case GX_CTF_G8:
 		case GX_CTF_B8:
-		case GX_CTF_RG8:
-		case GX_CTF_GB8:
 		case GX_CTF_Z8M:
 		case GX_CTF_Z8L:
 			xshift = 3;
 			yshift = 2;
 			break;
 		case GX_TF_IA8:
-		case GX_TF_Z16:
-		case GX_TF_Z24X8:
 		case GX_TF_RGB565:
 		case GX_TF_RGB5A3:
 		case GX_TF_RGBA8:
-		case GX_CTF_Z16L:
+		case GX_TF_CI14:
+		case GX_TF_Z16:
+		case GX_TF_Z24X8:
 		case GX_CTF_RA8:
+		case GX_CTF_YUVA8:
+		case GX_CTF_RG8:
+		case GX_CTF_GB8:
+		case GX_CTF_Z16L:
 			xshift = 2;
 			yshift = 2;
 			break;
 		default:
-			xshift = 2;
-			yshift = 2;
+			xshift = 0;
+			yshift = 0;
 			break;
 	}
 
 	bitsize = 32;
-	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8) bitsize = 64;
+	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8 || fmt==GX_CTF_YUVA8) bitsize = 64;
 
 	size = 0;
 	if(mipmap) {
@@ -3243,12 +3330,12 @@ void GX_InitTexObj(GXTexObj *obj,void *img_ptr,u16 wd,u16 ht,u8 fmt,u8 wrap_s,u8
 		case GX_TF_IA8:
 		case GX_TF_RGB565:
 		case GX_TF_RGB5A3:
-		case GX_TF_RGBA8:
+		case GX_TF_CI14:
 			xshift = 2;
 			yshift = 2;
 			ptr->tex_tile_type = 2;
 			break;
-		case GX_TF_CI14:
+		case GX_TF_RGBA8:
 			xshift = 2;
 			yshift = 2;
 			ptr->tex_tile_type = 3;
@@ -3285,7 +3372,6 @@ void GX_InitTexObjLOD(GXTexObj *obj,u8 minfilt,u8 magfilt,f32 minlod,f32 maxlod,
 {
 	struct __gx_texobj *ptr = (struct __gx_texobj*)obj;
 	static const u8 GX2HWFiltConv[] = {0x00,0x04,0x01,0x05,0x02,0x06,0x00,0x00};
-	//static const u8 HW2GXFiltConv[] = {0x00,0x02,0x04,0x00,0x01,0x03,0x05,0x00};
 
 	if(lodbias<-4.0f) lodbias = -4.0f;
 	else if(lodbias==4.0f) lodbias = 3.99f;
@@ -3405,6 +3491,32 @@ void GX_InitTlutObj(GXTlutObj *obj,void *lut,u8 fmt,u16 entries)
 	ptr->tlut_maddr = (ptr->tlut_maddr&~0x00ffffff)|(_SHIFTR(MEM_VIRTUAL_TO_PHYSICAL(lut),5,24));
 	ptr->tlut_maddr = (ptr->tlut_maddr&~0xff000000)|(_SHIFTL(0x64,24,8));
 	ptr->tlut_nentries = entries;
+}
+
+void GX_GetTlutObjAll(GXTlutObj *obj,void **lut,u8 *fmt,u16 *entries)
+{
+	struct __gx_tlutobj *ptr = (struct __gx_tlutobj*)obj;
+	*lut = (void*)_SHIFTL(ptr->tlut_maddr,5,24);
+	*fmt = _SHIFTR(ptr->tlut_fmt,10,2);
+	*entries = ptr->tlut_nentries;
+}
+
+void* GX_GetTlutObjData(GXTlutObj *obj)
+{
+	struct __gx_tlutobj *ptr = (struct __gx_tlutobj*)obj;
+	return (void*)_SHIFTL(ptr->tlut_maddr,5,24);
+}
+
+u8 GX_GetTlutObjFmt(GXTlutObj *obj)
+{
+	struct __gx_tlutobj *ptr = (struct __gx_tlutobj*)obj;
+	return _SHIFTR(ptr->tlut_fmt,10,2);
+}
+
+u16 GX_GetTlutObjNumEntries(GXTlutObj *obj)
+{
+	struct __gx_tlutobj *ptr = (struct __gx_tlutobj*)obj;
+	return ptr->tlut_nentries;
 }
 
 void GX_LoadTexObj(GXTexObj *obj,u8 mapid)
@@ -3532,20 +3644,21 @@ void GX_PreloadEntireTexture(GXTexObj *obj,GXTexRegion *region)
 			h = wd>>(i+1);
 			switch(ptr->tex_fmt) {
 				case GX_TF_I4:
-				case GX_TF_IA4:
 				case GX_TF_CI4:
 				case GX_TF_CMPR:
 					xshift = 3;
 					yshift = 3;
 					break;
 				case GX_TF_I8:
+				case GX_TF_IA4:
 				case GX_TF_CI8:
 					xshift = 3;
 					yshift = 2;
 					break;
 				case GX_TF_IA8:
-				case GX_TF_RGB5A3:
 				case GX_TF_RGB565:
+				case GX_TF_RGB5A3:
+				case GX_TF_RGBA8:
 				case GX_TF_CI14:
 					xshift = 2;
 					yshift = 2;
@@ -3928,7 +4041,7 @@ void GX_EnableTexOffsets(u8 coord,u8 line_enable,u8 point_enable)
 
 void GX_SetClipMode(u8 mode)
 {
-	GX_LOAD_XF_REG(0x1005,(mode&1));
+	GX_LOAD_XF_REG(0x1005,(mode&0x7));
 }
 
 void GX_SetScissor(u32 xOrigin,u32 yOrigin,u32 wd,u32 ht)
@@ -3946,6 +4059,19 @@ void GX_SetScissor(u32 xOrigin,u32 yOrigin,u32 wd,u32 ht)
 
 	GX_LOAD_BP_REG(__gx->sciTLcorner);
 	GX_LOAD_BP_REG(__gx->sciBRcorner);
+}
+
+void GX_GetScissor(u32 *xOrigin,u32 *yOrigin,u32 *wd,u32 *ht)
+{
+	u32 xo = _SHIFTR(__gx->sciTLcorner,12,11);
+	u32 yo = _SHIFTL(__gx->sciTLcorner,0,11);
+	u32 nwd = _SHIFTR(__gx->sciBRcorner,12,11);
+	u32 nht = _SHIFTL(__gx->sciBRcorner,0,11);
+
+	*xOrigin = xo-0x156;
+	*yOrigin = yo-0x156;
+	*wd = (nwd+1)-xo;
+	*ht = (nht+1)-yo;
 }
 
 void GX_SetScissorBoxOffset(s32 xoffset,s32 yoffset)
@@ -5132,15 +5258,23 @@ void GX_AdjustForOverscan(GXRModeObj *rmin,GXRModeObj *rmout,u16 hor,u16 ver)
 
 	rmout->fbWidth = rmin->fbWidth-(hor<<1);
 	rmout->efbHeight = rmin->efbHeight-((rmin->efbHeight*(ver<<1))/rmin->xfbHeight);
-	if(rmin->xfbMode==VI_XFBMODE_SF && !(rmin->viTVMode&VI_PROGRESSIVE)) rmout->xfbHeight = rmin->xfbHeight-ver;
+	if(rmin->xfbMode==VI_XFBMODE_SF && (rmin->viTVMode&0x3)==VI_INTERLACE) rmout->xfbHeight = rmin->xfbHeight-ver;
 	else rmout->xfbHeight = rmin->xfbHeight-(ver<<1);
 
 	rmout->viWidth = rmin->viWidth-(hor<<1);
-	if(rmin->viTVMode&VI_PROGRESSIVE) rmout->viHeight = rmin->viHeight-(ver<<2);
+	if((rmin->viTVMode&0x3)==VI_NON_INTERLACE) rmout->viHeight = rmin->viHeight-(ver<<2);
 	else rmout->viHeight = rmin->viHeight-(ver<<1);
 
 	rmout->viXOrigin += hor;
 	rmout->viYOrigin += ver;
+}
+
+u16 GX_GetNumXfbLines(u16 efbHeight,f32 yscale)
+{
+	u32 yScale;
+
+	yScale = ((u32)(256.0f/yscale))&0x1ff;
+	return __GX_GetNumXfbLines(efbHeight,yScale);
 }
 
 f32 GX_GetYScaleFactor(u16 efbHeight,u16 xfbHeight)

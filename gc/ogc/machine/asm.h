@@ -135,6 +135,9 @@
 #define MMCR0	952
 #define MMCR1	956
 
+#define THRM1	1020
+#define THRM2	1021
+#define THRM3	1022
 
 #define LINK_REGISTER_CALLEE_UPDATE_ROOM 4
 #define EXCEPTION_NUMBER 8
@@ -328,8 +331,8 @@
 #define MSR_SE				0x00000400
 #define MSR_ME				0x00001000
 #define MSR_FP				0x00002000
-#define MSR_POW				0x00004000
 #define MSR_EE				0x00008000
+#define MSR_POW				0x00040000
 
 #define PPC_ALIGNMENT		8
 
