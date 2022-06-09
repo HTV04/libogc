@@ -176,7 +176,7 @@
 #define X(a,b)  b,a
 struct bba_descr {
 	u32 X(X(next_packet_ptr:12, packet_len:12), status:8);
-} __attribute((packed));
+};
 
 
 struct bba_priv {

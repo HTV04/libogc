@@ -304,8 +304,8 @@ dist: wii cube install-headers
 #---------------------------------------------------------------------------------
 	@tar    --exclude=*CVS* --exclude=.svn --exclude=wii --exclude=cube --exclude=*deps* \
 		--exclude=*.bz2  --exclude=*include* --exclude=*lib/* --exclude=*docs/*\
-		-cvjf libogc2-src-$(VERSTRING).tar.bz2 *
-	@tar -cvjf libogc2-$(VERSTRING).tar.bz2 include lib libogc_license.txt gamecube_rules wii_rules
+		-cvjf libogc-mod-src-$(VERSTRING).tar.bz2 *
+	@tar -cvjf libogc-mod-$(VERSTRING).tar.bz2 include lib libogc_license.txt gamecube_rules wii_rules
 
 
 LIBRARIES	:=	$(OGCLIB).a  $(MODLIB).a $(DBLIB).a \

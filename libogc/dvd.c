@@ -188,7 +188,7 @@ static dvddrvinfo __dvd_driveinfo ATTRIBUTE_ALIGN(32);
 static dvdcallbacklow __dvd_callback = NULL;
 static dvdcallbacklow __dvd_resetcovercb = NULL;
 static dvdcallbacklow __dvd_finalunlockcb = NULL;
-static dvdcallbacklow __dvd_finalreadmemcb = NULL;
+//static dvdcallbacklow __dvd_finalreadmemcb = NULL;
 static dvdcallbacklow __dvd_finalsudcb = NULL;
 static dvdcallbacklow __dvd_finalstatuscb = NULL;
 static dvdcallbacklow __dvd_finaladdoncb = NULL;
@@ -390,7 +390,7 @@ s32 DVD_LowPatchDriveCode(dvdcallbacklow cb);
 s32 DVD_LowSpinUpDrive(dvdcallbacklow cb);
 s32 DVD_LowControlMotor(u32 mode,dvdcallbacklow cb);
 s32 DVD_LowFuncCall(u32 address,dvdcallbacklow cb);
-s32 DVD_LowReadmem(u32 address,void *buffer,dvdcallbacklow cb);
+//s32 DVD_LowReadmem(u32 address,void *buffer,dvdcallbacklow cb);
 s32 DVD_LowSetGCMOffset(s64 offset,dvdcallbacklow cb);
 s32 DVD_LowSetOffset(s64 offset,dvdcallbacklow cb);
 s32 DVD_GcodeLowRead(void *buf,u32 len,u32 offset,dvdcallbacklow cb);
@@ -1085,7 +1085,7 @@ static void __dvd_getstatuscb(s32 result)
 	__dvd_stategettingerror();
 }
 
-static void __dvd_readmemcb(s32 result)
+/*static void __dvd_readmemcb(s32 result)
 {
 	u32 val,*pn_data;
 	dvdcallbacklow cb;
@@ -1110,6 +1110,7 @@ static void __dvd_readmemcb(s32 result)
 	}
 	__dvd_stategettingerror();
 }
+*/
 
 static void __dvd_cntrldrivecb(s32 result)
 {
@@ -1866,7 +1867,7 @@ s32 DVD_LowSetGCMOffset(s64 offset,dvdcallbacklow cb)
 	return 1;
 }
 
-s32 DVD_LowReadmem(u32 address,void *buffer,dvdcallbacklow cb)
+/*s32 DVD_LowReadmem(u32 address,void *buffer,dvdcallbacklow cb)
 {
 #ifdef _DVD_DEBUG
 	printf("DVD_LowReadmem(0x%08x,%p)\n",address,buffer);
@@ -1883,6 +1884,7 @@ s32 DVD_LowReadmem(u32 address,void *buffer,dvdcallbacklow cb)
 
 	return 1;
 }
+*/
 
 s32 DVD_LowFuncCall(u32 address,dvdcallbacklow cb)
 {
@@ -2873,7 +2875,7 @@ static bool __gcdvd_IsInserted(void)
 	u32 status = 0;
 	DVD_LowGetStatus(&status, NULL);
 
-	if(DVD_STATUS(status) == DVD_STATUS_READY) 
+	if(DVD_STATUS(status) == DVD_STATUS_READY)
 		return true;
 
 	return false;

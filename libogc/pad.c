@@ -14,7 +14,7 @@
 
 #define PAD_PRODPADS		6
 
-#define PAD_ENABLEDMASK(chan)		(0x80000000>>chan);
+#define PAD_ENABLEDMASK(chan)		(0x80000000>>chan)
 
 typedef struct _keyinput {
 	s8 stickX;

@@ -63,7 +63,7 @@ struct card_header {
 	u8 padding[0x1d6];
 	u16 chksum1;
 	u16 chksum2;
-} ATTRIBUTE_PACKED;
+};
 
 struct card_dat {			// dir allocation table
 	card_direntry entries[CARD_MAXFILES];
@@ -74,7 +74,7 @@ struct card_dircntrl {
 	u16 updated;
 	u16 chksum1;
 	u16 chksum2;
-} ATTRIBUTE_PACKED;
+};
 
 struct card_bat {
 	u16 chksum1;
@@ -83,7 +83,7 @@ struct card_bat {
 	u16 freeblocks;
 	u16 lastalloc;
 	u16 fat[0xffb];
-} ATTRIBUTE_PACKED;
+};
 
 typedef struct _card_block {
 	u8 cmd[9];
@@ -2708,7 +2708,8 @@ s32 CARD_CreateAsync(s32 chn,const char *filename,u32 size,card_file *file,cardc
 	card->card_api_cb = cb;
 
 	entry[filenum].length = size/card->sector_size;
-	strncpy((char*)entry[filenum].filename,filename,CARD_FILENAMELEN);
+	memset(entry[filenum].filename,0,CARD_FILENAMELEN);
+	memcpy(entry[filenum].filename,filename,len+1);
 
 	card->curr_file = file;
 	file->chn = chn;
@@ -2781,7 +2782,8 @@ s32 CARD_CreateEntryAsync(s32 chn,card_dir *direntry,card_file *file,cardcallbac
 	card->card_api_cb = cb;
 
 	entry[filenum].length = direntry->filelen/card->sector_size;
-	strncpy((char*)entry[filenum].filename,direntry->filename,CARD_FILENAMELEN);
+	memset(entry[filenum].filename,0,CARD_FILENAMELEN);
+	memcpy(entry[filenum].filename,direntry->filename,len+1);
 
 	card->curr_file = file;
 	file->chn = chn;
