@@ -247,9 +247,7 @@ void c_default_exceptionhandler(frame_context *pCtx)
 	__console_init(exception_xfb,20,20,640,574,1280);
 	CON_EnableGecko(1, true);
 
-	kprintf("\n\n\n\x1b[31;49m\tAn exception occurred\n\n\x1b[39;49m");
-
-	kprintf("\tException type: %s\n\n", exception_name[pCtx->EXCPT_Number]);
+	kprintf("\n\n\n\x1b[31;1m\tAn exception occurred: \x1b[33;1m%s\x1b[39;0m\n\n", exception_name[pCtx->EXCPT_Number]);
 
 	kprintf("\tGPR00 %08X GPR08 %08X GPR16 %08X GPR24 %08X\n",pCtx->GPR[0], pCtx->GPR[8], pCtx->GPR[16], pCtx->GPR[24]);
 	kprintf("\tGPR01 %08X GPR09 %08X GPR17 %08X GPR25 %08X\n",pCtx->GPR[1], pCtx->GPR[9], pCtx->GPR[17], pCtx->GPR[25]);
