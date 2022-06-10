@@ -42,7 +42,7 @@ distribution.
 
 void DVDLight_On(void);
 void DVDLight_Off(void);
-bool DVDLight_GetStatus(void);
+bool DVDLight_IsOn(void);
 
 void DVDLight_SetLevel(s32 level);
 u8 DVDLight_GetLevel(void);

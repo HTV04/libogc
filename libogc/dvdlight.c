@@ -38,72 +38,72 @@ distribution.
 #define DVDLIGHT_REGISTER	0xCD0000C0
 #define DVDLIGHT_LED		0x20
 
-struct timespec __dvdlight_timeon;
-struct timespec __dvdlight_timeoff;
+static lwp_t dvdlight_thread = 0;
+static u32 *dvdlight_register = (u32*) DVDLIGHT_REGISTER;
+static bool dvdlight_on = false;
+static u8 dvdlight_level = 0;
 
-static lwp_t __dvdlight_thread = 0;
-static u32 *__dvdlight_register = (u32*)DVDLIGHT_REGISTER;
-static bool __dvdlight_status = false;
-static u8 __dvdlight_level = 0;
+struct timespec dvdlight_timeOn;
+struct timespec dvdlight_timeOff;
 
 // The light needs to be turned on and off to simulate the light intensity.
-static void *__dvdlight_loop(void *arg)
+static void *dvdlight_loop(void *arg)
 {
-	struct timespec timeon;
-	struct timespec timeoff;
+	struct timespec timeOn;
+	struct timespec timeOff;
 
-	while (__dvdlight_status == true) {
-		timeon = __dvdlight_timeon;
-		timeoff = __dvdlight_timeoff;
+	while (dvdlight_on == true) {
+		if (dvdlight_level == 255) {
+			*dvdlight_register |= DVDLIGHT_LED; // Turn light on
+		} else if (dvdlight_level == 0) {
+			*dvdlight_register &= ~DVDLIGHT_LED; // Turn light off
+		} else {
+			timeOn = dvdlight_timeOn;
+			timeOff = dvdlight_timeOff;
 
-		// Turn on the light
-		*__dvdlight_register |= DVDLIGHT_LED;
-		nanosleep(&timeon, NULL);
-
-		// Turn off the light
-		if (timeoff.tv_nsec > 0)
-			*__dvdlight_register &= ~DVDLIGHT_LED;
-		nanosleep(&timeoff, NULL);
+			*dvdlight_register |= DVDLIGHT_LED; // Turn light on
+			nanosleep(&timeOn, NULL);
+			*dvdlight_register &= ~DVDLIGHT_LED; // Turn light off
+			nanosleep(&timeOff, NULL);
+		}
 	}
 
-	// Turn off the light
-	*__dvdlight_register &= ~DVDLIGHT_LED;
-
-	// Disable the thread
-	__dvdlight_thread = 0;
+	// Shut down thread
+	*dvdlight_register &= ~DVDLIGHT_LED; // Turn light off
+	dvdlight_thread = 0; // Disable thread
 
 	return NULL;
 }
 
 void DVDLight_On(void)
 {
-	__dvdlight_status = true;
+	dvdlight_on = true;
 
 	// Create thread if it is disabled
-	if (__dvdlight_thread == 0)
-		LWP_CreateThread(&__dvdlight_thread, __dvdlight_loop, NULL, NULL, 0, 70);
+	if (dvdlight_thread == 0)
+		LWP_CreateThread(&dvdlight_thread, dvdlight_loop, NULL, NULL, 0, 70);
 }
 void DVDLight_Off(void)
 {
-	__dvdlight_status = false;
+	dvdlight_on = false;
 }
-bool DVDLight_GetStatus(void)
+bool DVDLight_IsOn(void)
 {
-	return __dvdlight_status;
+	return dvdlight_on;
 }
 
 void DVDLight_SetLevel(s32 level)
 {
-	if (level >= 100)
-		level = 100;
-	else if (level <= 0)
+	if (level > 255)
+		level = 255;
+	else if (level < 0)
 		level = 0;
 
-	__dvdlight_timeon.tv_nsec = level * 40000;
-	__dvdlight_timeoff.tv_nsec = level * -40000 + 10200000;
+	dvdlight_timeOn.tv_nsec = level * 40000;
+	dvdlight_timeOff.tv_nsec = (level * -40000) + 10200000;
 
-	__dvdlight_level = level;
+	dvdlight_level = level;
 }
-u8 DVDLight_GetLevel(void) { return __dvdlight_level; }
+u8 DVDLight_GetLevel(void) { return dvdlight_level; }
 
 #endif /* defined(HW_RVL) */
