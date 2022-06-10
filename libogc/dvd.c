@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------
 
-dvd.h -- DVD subsystem
+dvd.c -- DVD subsystem
 
 Copyright (C) 2004
 Michael Wiedenbauer (shagkur)

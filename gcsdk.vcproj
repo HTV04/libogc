@@ -521,6 +521,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="libogc\dvdlight.c"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="libogc\es.c"
 					>
 					<FileConfiguration
@@ -3569,6 +3589,10 @@
 				</File>
 				<File
 					RelativePath="gc\ogc\dvd.h"
+					>
+				</File>
+				<File
+					RelativePath="gc\ogc\dvdlight.h"
 					>
 				</File>
 				<File

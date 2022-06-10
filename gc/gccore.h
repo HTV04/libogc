@@ -47,6 +47,7 @@ distribution.
 #include "ogc/color.h"
 #include "ogc/consol.h"
 #include "ogc/dvd.h"
+#include "ogc/dvdlight.h"
 #include "ogc/exi.h"
 #include "ogc/gu.h"
 #include "ogc/gx.h"

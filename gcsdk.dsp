@@ -164,6 +164,10 @@ SOURCE=.\libogc\dvd.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\libogc\dvdlight.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\libogc\es.c
 # End Source File
 # Begin Source File
@@ -1061,6 +1065,10 @@ SOURCE=.\gc\ogc\dsp.h
 # Begin Source File
 
 SOURCE=.\gc\ogc\dvd.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\gc\ogc\dvdlight.h
 # End Source File
 # Begin Source File
 
