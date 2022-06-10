@@ -10,8 +10,7 @@
     },
 
     "docs": {
-       // Only invoke docs target when building from master branch
-      "branch": "master",
+      "branch": "main",
 
       "buildenv": "xenial-amd64",
       "builddeps": [
