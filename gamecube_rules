@@ -8,7 +8,7 @@ endif
 
 include $(DEVKITPPC)/base_rules
 
-PORTLIBS	:=	$(PORTLIBS_PATH)/gamecube $(PORTLIBS_PATH)/ppc
+PORTLIBS	:=	$(DEVKITPRO)/libogc-mod/portlibs/gamecube $(PORTLIBS_PATH)/gamecube $(PORTLIBS_PATH)/ppc
 
 export PATH	:=	$(PORTLIBS_PATH)/gamecube/bin:$(PORTLIBS_PATH)/ppc/bin:$(PATH)
 

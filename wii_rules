@@ -8,7 +8,7 @@ endif
 
 include $(DEVKITPPC)/base_rules
 
-PORTLIBS	:=	$(PORTLIBS_PATH)/wii $(PORTLIBS_PATH)/ppc
+PORTLIBS	:=	$(DEVKITPRO)/libogc-mod/portlibs/wii $(PORTLIBS_PATH)/wii $(PORTLIBS_PATH)/ppc
 
 export PATH     :=      $(PORTLIBS_PATH)/wii/bin:$(PORTLIBS_PATH)/ppc/bin:$(PATH)
 
