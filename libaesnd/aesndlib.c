@@ -60,6 +60,7 @@ struct aesndpb_t
 	AESNDAudioCallback audioCB;
 	void *audioCBArg;
 };
+static const struct aesndpb_t __aesndpbempty = {0};
 
 static dsptask_t __aesnddsptask;
 
@@ -85,16 +86,6 @@ static AESNDPB __aesndcommand ATTRIBUTE_ALIGN(32);
 static u8 __dspdram[DSP_DRAMSIZE] ATTRIBUTE_ALIGN(32);
 static u8 mute_buffer[SND_BUFFERSIZE] ATTRIBUTE_ALIGN(32);
 static u8 audio_buffer[2][SND_BUFFERSIZE] ATTRIBUTE_ALIGN(32);
-
-static __inline__ void snd_set0b(char *p,int n)
-{
-	while(n>0) { *p++ = 0; n--; }
-}
-
-static __inline__ void snd_set0w(int *p,int n)
-{
-	while(n>0) { *p++ = 0; n--; }
-}
 
 static __inline__ void __aesndcopycommand(AESNDPB *dst,AESNDPB *src)
 {
@@ -447,16 +438,16 @@ void AESND_Init(void)
 #if defined(HW_DOL)
 		for(i=0;i<MAX_VOICES;i++) __aesndaramblocks[i] = AR_Alloc(DSP_STREAMBUFFER_SIZE*2);
 #endif
-		snd_set0w((int*)mute_buffer,SND_BUFFERSIZE>>2);
-		snd_set0w((int*)audio_buffer[0],SND_BUFFERSIZE>>2);
-		snd_set0w((int*)audio_buffer[1],SND_BUFFERSIZE>>2);
+		memset(mute_buffer,0,SND_BUFFERSIZE);
+		memset(audio_buffer[0],0,SND_BUFFERSIZE);
+		memset(audio_buffer[1],0,SND_BUFFERSIZE);
 		DCFlushRange(mute_buffer,SND_BUFFERSIZE);
 		DCFlushRange(audio_buffer[0],SND_BUFFERSIZE);
 		DCFlushRange(audio_buffer[1],SND_BUFFERSIZE);
 
-		snd_set0w((int*)&__aesndcommand,sizeof(struct aesndpb_t)>>2);
+		__aesndcommand = __aesndpbempty;
 		for(i=0;i<MAX_VOICES;i++)
-			snd_set0w((int*)&__aesndvoicepb[i],sizeof(struct aesndpb_t)>>2);
+			__aesndvoicepb[i] = __aesndpbempty;
 
 		__aesndloaddsptask(&__aesnddsptask,aesnd_dsp_mixer,aesnd_dsp_mixer_size,__dspdram,DSP_DRAMSIZE);
 	}
@@ -572,7 +563,7 @@ void AESND_FreeVoice(AESNDPB *pb)
 	if(pb==NULL) return;
 
 	_CPU_ISR_Disable(level);
-	snd_set0w((int*)pb,sizeof(struct aesndpb_t)>>2);
+	*pb = __aesndpbempty;
 	_CPU_ISR_Restore(level);
 }
 
