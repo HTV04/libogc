@@ -563,6 +563,8 @@ void AESND_FreeVoice(AESNDPB *pb)
 	if(pb==NULL) return;
 
 	_CPU_ISR_Disable(level);
+	while(__aesndcurrvoice==pb->voiceno)
+		_CPU_ISR_Flash(level);
 	*pb = __aesndpbempty;
 	_CPU_ISR_Restore(level);
 }
