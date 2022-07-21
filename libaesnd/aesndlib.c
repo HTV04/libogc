@@ -415,7 +415,7 @@ static void __aesndloaddsptask(dsptask_t *task,const void *dsp_code,u32 dsp_code
 
 void AESND_Init(void)
 {
-	u32 i,level;
+	u32 level;
 
 #if defined(HW_DOL)
 	__aesndarambase = AR_Init(__aesndarammemory,MAX_VOICES);
@@ -436,7 +436,7 @@ void AESND_Init(void)
 		__aesndvoicesstopped = true;
 
 #if defined(HW_DOL)
-		for(i=0;i<MAX_VOICES;i++) __aesndaramblocks[i] = AR_Alloc(DSP_STREAMBUFFER_SIZE*2);
+		for(u32 i=0;i<MAX_VOICES;i++) __aesndaramblocks[i] = AR_Alloc(DSP_STREAMBUFFER_SIZE*2);
 #endif
 		memset(mute_buffer,0,SND_BUFFERSIZE);
 		memset(audio_buffer[0],0,SND_BUFFERSIZE);
@@ -446,7 +446,7 @@ void AESND_Init(void)
 		DCFlushRange(audio_buffer[1],SND_BUFFERSIZE);
 
 		__aesndcommand = __aesndpbempty;
-		for(i=0;i<MAX_VOICES;i++)
+		for(u32 i=0;i<MAX_VOICES;i++)
 			__aesndvoicepb[i] = __aesndpbempty;
 
 		__aesndloaddsptask(&__aesnddsptask,aesnd_dsp_mixer,aesnd_dsp_mixer_size,__dspdram,DSP_DRAMSIZE);
@@ -461,7 +461,7 @@ void AESND_Init(void)
 
 void AESND_Reset(void)
 {
-	u32 i,level;
+	u32 level;
 
 	_CPU_ISR_Disable(level);
 	if(__aesndinit) {
@@ -476,7 +476,7 @@ void AESND_Reset(void)
 		} while(__aesnddspinit);
 
 #if defined(HW_DOL)
-		for(i=0;i<MAX_VOICES;i++) AR_Free(NULL);
+		for(u32 i=0;i<MAX_VOICES;i++) AR_Free(NULL);
 #endif
 
 		__aesndinit = 0;
@@ -533,11 +533,11 @@ AESNDAudioCallback AESND_RegisterAudioCallback(AESNDAudioCallback cb,void *cbArg
 
 AESNDPB* AESND_AllocateVoice(AESNDVoiceCallback cb,void *cbArg)
 {
-	u32 i,level;
+	u32 level;
 	AESNDPB *pb = NULL;
 
 	_CPU_ISR_Disable(level);
-	for(i=0;i<MAX_VOICES;i++) {
+	for(u32 i=0;i<MAX_VOICES;i++) {
 		pb = &__aesndvoicepb[i];
 		if(!(pb->flags&VOICE_USED)) {
 			pb->voiceno = i;
