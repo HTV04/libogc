@@ -97,7 +97,9 @@ INCLUDES	+=	-I$(BASEDIR)/cube
 MACHDEP		+=	-DHW_DOL
 endif
 
-CFLAGS		:= $(FALSE_POSITIVES) -DNDEBUG -DLIBOGC_INTERNAL -g -O2 -fno-strict-aliasing -Wall $(MACHDEP) $(INCLUDES)
+CFLAGS		:= $(FALSE_POSITIVES) -DLIBOGC_INTERNAL -fno-strict-aliasing -Wall $(MACHDEP) $(INCLUDES)
+CFLAGS		+= -DNDEBUG -O2
+#CFLAGS		+= -DDEBUG -g -O0
 ASFLAGS		:= $(MACHDEP) -mregnames -D_LANGUAGE_ASSEMBLY $(INCLUDES)
 
 #---------------------------------------------------------------------------------
