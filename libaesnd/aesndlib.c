@@ -534,7 +534,7 @@ AESNDAudioCallback AESND_RegisterAudioCallback(AESNDAudioCallback cb,void *cbArg
 AESNDPB* AESND_AllocateVoice(AESNDVoiceCallback cb,void *cbArg)
 {
 	u32 level;
-	AESNDPB *pb = NULL;
+	AESNDPB *pb;
 
 	_CPU_ISR_Disable(level);
 	for(u32 i=0;i<MAX_VOICES;i++) {
@@ -555,6 +555,7 @@ AESNDPB* AESND_AllocateVoice(AESNDVoiceCallback cb,void *cbArg)
 			pb->cbArg = cbArg;
 			break;
 		}
+		pb = NULL;
 	}
 	_CPU_ISR_Restore(level);
 
@@ -570,6 +571,7 @@ void AESND_FreeVoice(AESNDPB *pb)
 	while(__aesndcurrvoice==pb->voiceno)
 		_CPU_ISR_Flash(level);
 	*pb = __aesndpbempty;
+	pb = NULL;
 	_CPU_ISR_Restore(level);
 }
 
