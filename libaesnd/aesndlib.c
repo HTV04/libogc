@@ -55,12 +55,49 @@ struct aesndpb_t
 	u32 voiceno;
 	u32 shift;
 	AESNDVoiceCallback cb;
-	void *cbArg;
+	void *cb_arg;
 
-	AESNDAudioCallback audioCB;
-	void *audioCBArg;
+	AESNDAudioCallback audio_cb;
+	void *audio_cb_arg;
 };
 static const struct aesndpb_t __aesndpbempty = {0};
+static const struct aesndpb_t __aesndpbdefault = {
+	0, // out_buf
+
+	0, // buf_start
+	0, // buf_end
+	0, // buf_curr
+
+	0, // yn1
+	0, // yn2
+	0, // pds
+
+	0x0001, // freq_h
+	0x0000, // freq_l
+	0, // counter
+
+	0,0, // left,right
+	0x0100,0x0100, // volume_l,volume_r
+
+	0, // delay
+
+	(VOICE_USED|VOICE_STOPPED), // flags
+
+	{0}, // _pad
+
+	0, // mram_start
+	0, // mram_curr
+	0, // mram_end
+	0, // stream_last
+
+	0, // voiceno
+	0, // shift
+	NULL, // cb
+	NULL, // cb_arg
+
+	NULL, // audio_cb
+	NULL // audio_cb_arg
+};
 
 static dsptask_t __aesnddsptask;
 
@@ -118,7 +155,7 @@ static __inline__ void __aesndcopycommand(AESNDPB *dst,AESNDPB *src)
 	dst->voiceno = src->voiceno;
 	dst->shift = src->shift;
 	dst->cb = src->cb;
-	dst->cbArg = src->cbArg;
+	dst->cb_arg = src->cb_arg;
 }
 
 static __inline__ void __aesndsetvoiceformat(AESNDPB *pb,u32 format)
@@ -190,7 +227,7 @@ static __inline__ void __aesndhandlerequest(AESNDPB *pb)
 
 	if(pb->mram_curr>=pb->mram_end) {
 		if(pb->flags&VOICE_STREAM && pb->cb)
-			pb->cb(pb,VOICE_STATE_STREAM,pb->cbArg);
+			pb->cb(pb,VOICE_STATE_STREAM,pb->cb_arg);
 		if(pb->flags&VOICE_ONCE) {
 			pb->flags |= VOICE_STOPPED;
 			return;
@@ -254,7 +291,7 @@ static __inline__ void __aesndhandlerequest(AESNDPB *pb)
 
 	if(pb->mram_curr>=pb->mram_end) {
 		if(pb->flags&VOICE_STREAM && pb->cb)
-			pb->cb(pb,VOICE_STATE_STREAM,pb->cbArg);
+			pb->cb(pb,VOICE_STATE_STREAM,pb->cb_arg);
 		if(pb->flags&VOICE_ONCE) {
 			pb->buf_start = 0;
 			pb->flags |= VOICE_STOPPED;
@@ -324,7 +361,7 @@ static void __dsp_requestcallback(dsptask_t *task)
 
 		__aesndhandlerequest(&__aesndcommand);
 
-		if(__aesndcommand.flags&VOICE_STOPPED && __aesndcommand.cb) __aesndcommand.cb(&__aesndcommand,VOICE_STATE_STOPPED,__aesndcommand.cbArg);
+		if(__aesndcommand.flags&VOICE_STOPPED && __aesndcommand.cb) __aesndcommand.cb(&__aesndcommand,VOICE_STATE_STOPPED,__aesndcommand.cb_arg);
 
 		__aesndcopycommand(&__aesndvoicepb[__aesndcurrvoice],&__aesndcommand);
 
@@ -333,7 +370,7 @@ static void __dsp_requestcallback(dsptask_t *task)
 		if(__aesndcurrvoice<MAX_VOICES) {
 			__aesndcopycommand(&__aesndcommand,&__aesndvoicepb[__aesndcurrvoice]);
 
-			if(__aesndcommand.cb) __aesndcommand.cb(&__aesndcommand,VOICE_STATE_RUNNING,__aesndcommand.cbArg);
+			if(__aesndcommand.cb) __aesndcommand.cb(&__aesndcommand,VOICE_STATE_RUNNING,__aesndcommand.cb_arg);
 
 			DCFlushRange(&__aesndcommand,PB_STRUCT_SIZE);
 			DSP_SendMailTo(0xface0020);
@@ -367,7 +404,7 @@ static void __audio_dma_callback(void)
 	else
 		ptr = audio_buffer[__aesndcurrab];
 
-	if(__aesndcommand.audioCB) __aesndcommand.audioCB(ptr,SND_BUFFERSIZE,__aesndcommand.audioCBArg);
+	if(__aesndcommand.audio_cb) __aesndcommand.audio_cb(ptr,SND_BUFFERSIZE,__aesndcommand.audio_cb_arg);
 	AUDIO_InitDMA((u32)ptr,SND_BUFFERSIZE);
 
 	if(__aesndglobalpause==true) return;
@@ -385,7 +422,7 @@ static void __audio_dma_callback(void)
 	__aesndvoicesstopped = false;
 	__aesndcopycommand(&__aesndcommand,&__aesndvoicepb[__aesndcurrvoice]);
 
-	if(__aesndcommand.cb) __aesndcommand.cb(&__aesndcommand,VOICE_STATE_RUNNING,__aesndcommand.cbArg);
+	if(__aesndcommand.cb) __aesndcommand.cb(&__aesndcommand,VOICE_STATE_RUNNING,__aesndcommand.cb_arg);
 
 	__aesndcommand.out_buf = (u32)MEM_VIRTUAL_TO_PHYSICAL(audio_buffer[__aesndcurrab]);
 	DCFlushRange(&__aesndcommand,PB_STRUCT_SIZE);
@@ -517,21 +554,21 @@ f32 AESND_GetDSPProcessUsage(void)
 	return usage;
 }
 
-AESNDAudioCallback AESND_RegisterAudioCallback(AESNDAudioCallback cb,void *cbArg)
+AESNDAudioCallback AESND_RegisterAudioCallback(AESNDAudioCallback cb,void *cb_arg)
 {
 	u32 level;
 	AESNDAudioCallback aCB;
 
 	_CPU_ISR_Disable(level);
-	aCB = __aesndcommand.audioCB;
-	__aesndcommand.audioCB = cb;
-	__aesndcommand.audioCBArg = cbArg;
+	aCB = __aesndcommand.audio_cb;
+	__aesndcommand.audio_cb = cb;
+	__aesndcommand.audio_cb_arg = cb_arg;
 	_CPU_ISR_Restore(level);
 
 	return aCB;
 }
 
-AESNDPB* AESND_AllocateVoice(AESNDVoiceCallback cb,void *cbArg)
+AESNDPB* AESND_AllocateVoice(AESNDVoiceCallback cb,void *cb_arg)
 {
 	u32 level;
 	AESNDPB *pb;
@@ -540,19 +577,10 @@ AESNDPB* AESND_AllocateVoice(AESNDVoiceCallback cb,void *cbArg)
 	for(u32 i=0;i<MAX_VOICES;i++) {
 		pb = &__aesndvoicepb[i];
 		if(!(pb->flags&VOICE_USED)) {
+			*pb = __aesndpbdefault;
 			pb->voiceno = i;
-			pb->flags = (VOICE_USED|VOICE_STOPPED);
-			pb->pds = pb->yn1 = pb->yn2 = 0;
-			pb->buf_start = 0;
-			pb->buf_curr = 0;
-			pb->buf_end = 0;
-			pb->counter = 0;
-			pb->volume_l = 0x0100;
-			pb->volume_r = 0x0100;
-			pb->freq_h = 0x0001;
-			pb->freq_l = 0x0000;
 			pb->cb = cb;
-			pb->cbArg = cbArg;
+			pb->cb_arg = cb_arg;
 			break;
 		}
 		pb = NULL;
@@ -693,7 +721,7 @@ void AESND_SetVoiceDelay(AESNDPB *pb,u32 delay)
 	_CPU_ISR_Restore(level);
 }
 
-AESNDVoiceCallback AESND_RegisterVoiceCallback(AESNDPB *pb,AESNDVoiceCallback cb,void *cbArg)
+AESNDVoiceCallback AESND_RegisterVoiceCallback(AESNDPB *pb,AESNDVoiceCallback cb,void *cb_arg)
 {
 	u32 level;
 	AESNDVoiceCallback rcb = NULL;
@@ -701,7 +729,7 @@ AESNDVoiceCallback AESND_RegisterVoiceCallback(AESNDPB *pb,AESNDVoiceCallback cb
 	_CPU_ISR_Disable(level);
 	rcb = pb->cb;
 	pb->cb = cb;
-	pb->cbArg = cbArg;
+	pb->cb_arg = cb_arg;
 	_CPU_ISR_Restore(level);
 
 	return rcb;
