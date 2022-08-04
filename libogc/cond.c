@@ -93,7 +93,7 @@ static s32 __lwp_cond_waitsupp(cond_t cond,mutex_t mutex,u64 timeout,u8 timedout
 
 	thecond = __lwp_cond_open(cond);
 	if(!thecond) return -1;
-		
+
 	if(thecond->lock!=LWP_MUTEX_NULL && thecond->lock!=mutex) {
 		__lwp_thread_dispatchenable();
 		return EINVAL;
@@ -111,7 +111,7 @@ static s32 __lwp_cond_waitsupp(cond_t cond,mutex_t mutex,u64 timeout,u8 timedout
 		_CPU_ISR_Restore(level);
 		__lwp_threadqueue_enqueue(&thecond->wait_queue,timeout);
 		__lwp_thread_dispatchenable();
-		
+
 		status = _thr_executing->wait.ret_code;
 		if(status && status!=ETIMEDOUT)
 			return status;
@@ -131,7 +131,7 @@ static s32 __lwp_cond_signalsupp(cond_t cond,u8 isbroadcast)
 {
 	lwp_cntrl *thethread;
 	cond_st *thecond;
-	
+
 	thecond = __lwp_cond_open(cond);
 	if(!thecond) return -1;
 
@@ -146,9 +146,9 @@ static s32 __lwp_cond_signalsupp(cond_t cond,u8 isbroadcast)
 s32 LWP_CondInit(cond_t *cond)
 {
 	cond_st *ret;
-	
+
 	if(!cond) return -1;
-	
+
 	ret = __lwp_cond_allocate();
 	if(!ret) return ENOMEM;
 
@@ -163,23 +163,23 @@ s32 LWP_CondInit(cond_t *cond)
 
 s32 LWP_CondWait(cond_t cond,mutex_t mutex)
 {
-	return __lwp_cond_waitsupp(cond,mutex,LWP_THREADQ_NOTIMEOUT,FALSE);
+	return __lwp_cond_waitsupp(cond,mutex,LWP_THREADQ_NOTIMEOUT,false);
 }
 
 s32 LWP_CondSignal(cond_t cond)
 {
-	return __lwp_cond_signalsupp(cond,FALSE);
+	return __lwp_cond_signalsupp(cond,false);
 }
 
 s32 LWP_CondBroadcast(cond_t cond)
 {
-	return __lwp_cond_signalsupp(cond,TRUE);
+	return __lwp_cond_signalsupp(cond,true);
 }
 
 s32 LWP_CondTimedWait(cond_t cond,mutex_t mutex,const struct timespec *abstime)
 {
 	u64 timeout = LWP_THREADQ_NOTIMEOUT;
-	bool timedout = FALSE;
+	bool timedout = false;
 
 	if(abstime) timeout = __lwp_wd_calc_ticks(abstime);
 	return __lwp_cond_waitsupp(cond,mutex,timeout,timedout);

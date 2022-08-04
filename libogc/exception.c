@@ -227,7 +227,7 @@ static void waitForReload(void)
 		{
 			kprintf("\tResetting...\n\n");
 #if defined(HW_DOL)
-			SYS_ResetSystem(SYS_HOTRESET,0,FALSE);
+			SYS_ResetSystem(SYS_HOTRESET,0,false);
 #else
 			__reload ();
 #endif

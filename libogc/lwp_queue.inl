@@ -81,7 +81,7 @@ static __inline__ void __lwp_queue_extractI(lwp_node *node)
 static __inline__ void __lwp_queue_insertI(lwp_node *after,lwp_node *node)
 {
 	lwp_node *before;
-	
+
 #ifdef _LWPQ_DEBUG
 	printk("__lwp_queue_insertI(%p,%p)\n",after,node);
 #endif

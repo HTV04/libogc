@@ -33,13 +33,12 @@ distribution.
 #ifndef __LWP_H__
 #define __LWP_H__
 
-/*! \file lwp.h 
+/*! \file lwp.h
 \brief Thread subsystem I
 
-*/ 
+*/
 
 #include <gctypes.h>
-#include <gcbool.h>
 
 #define LWP_CLOSED					-1
 #define LWP_SUCCESSFUL				0
@@ -100,13 +99,13 @@ s32 LWP_SuspendThread(lwp_t thethread);
 s32 LWP_ResumeThread(lwp_t thethread);
 
 
-/*! \fn BOOL LWP_ThreadIsSuspended(lwp_t thethread)
+/*! \fn bool LWP_ThreadIsSuspended(lwp_t thethread)
 \brief Test whether the given thread is suspended or not
 \param[in] thethread handle to the thread context which should be tested.
 
-\return TRUE or FALSE
+\return true or false
 */
-BOOL LWP_ThreadIsSuspended(lwp_t thethread);
+bool LWP_ThreadIsSuspended(lwp_t thethread);
 
 
 /*! \fn lwp_t LWP_GetSelf(void)

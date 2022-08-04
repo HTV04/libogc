@@ -31,13 +31,12 @@ distribution.
 #ifndef __MESSAGE_H__
 #define __MESSAGE_H__
 
-/*! \file message.h 
+/*! \file message.h
 \brief Thread subsystem II
 
-*/ 
+*/
 
 #include <gctypes.h>
-#include <gcbool.h>
 
 #define MQ_BOX_NULL				0xffffffff
 
@@ -85,7 +84,7 @@ s32 MQ_Init(mqbox_t *mqbox,u32 count);
 void MQ_Close(mqbox_t mqbox);
 
 
-/*! \fn BOOL MQ_Send(mqbox_t mqbox,mqmsg_t msg,u32 flags)
+/*! \fn bool MQ_Send(mqbox_t mqbox,mqmsg_t msg,u32 flags)
 \brief Sends a message to the given message queue.
 \param[in] mqbox mqbox_t handle to the message queue
 \param[in] msg message to send
@@ -93,10 +92,10 @@ void MQ_Close(mqbox_t mqbox);
 
 \return bool result
 */
-BOOL MQ_Send(mqbox_t mqbox,mqmsg_t msg,u32 flags);
+bool MQ_Send(mqbox_t mqbox,mqmsg_t msg,u32 flags);
 
 
-/*! \fn BOOL MQ_Jam(mqbox_t mqbox,mqmsg_t msg,u32 flags)
+/*! \fn bool MQ_Jam(mqbox_t mqbox,mqmsg_t msg,u32 flags)
 \brief Sends a message to the given message queue and jams it in front of the queue.
 \param[in] mqbox mqbox_t handle to the message queue
 \param[in] msg message to send
@@ -104,10 +103,10 @@ BOOL MQ_Send(mqbox_t mqbox,mqmsg_t msg,u32 flags);
 
 \return bool result
 */
-BOOL MQ_Jam(mqbox_t mqbox,mqmsg_t msg,u32 flags);
+bool MQ_Jam(mqbox_t mqbox,mqmsg_t msg,u32 flags);
 
 
-/*! \fn BOOL MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags)
+/*! \fn bool MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags)
 \brief Sends a message to the given message queue.
 \param[in] mqbox mqbox_t handle to the message queue
 \param[in] msg pointer to a mqmsg_t_t-type message to receive.
@@ -115,7 +114,7 @@ BOOL MQ_Jam(mqbox_t mqbox,mqmsg_t msg,u32 flags);
 
 \return bool result
 */
-BOOL MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags);
+bool MQ_Receive(mqbox_t mqbox,mqmsg_t *msg,u32 flags);
 
 #ifdef __cplusplus
 	}

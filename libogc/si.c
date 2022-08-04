@@ -750,7 +750,7 @@ u32 SI_RegisterPollingHandler(RDSTHandler handler)
 	for(i=0;i<4;i++) {
 		if(rdstHandlers[i]==NULL) {
 			rdstHandlers[i] = handler;
-			SI_EnablePollingInterrupt(TRUE);
+			SI_EnablePollingInterrupt(true);
 			_CPU_ISR_Restore(level);
 			return 1;
 		}
@@ -771,7 +771,7 @@ u32 SI_UnregisterPollingHandler(RDSTHandler handler)
 			for(i=0;i<4;i++) {
 				if(rdstHandlers[i]!=NULL) break;
 			}
-			if(i>=4) SI_EnablePollingInterrupt(FALSE);
+			if(i>=4) SI_EnablePollingInterrupt(false);
 
 			_CPU_ISR_Restore(level);
 			return 1;

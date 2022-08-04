@@ -91,7 +91,7 @@ s32 LWP_SemInit(sem_t *sem,u32 start,u32 max)
 	sema_st *ret;
 
 	if(!sem) return -1;
-	
+
 	ret = __lwp_sema_allocate();
 	if(!ret) return -1;
 
@@ -111,7 +111,7 @@ s32 LWP_SemWait(sem_t sem)
 	lwp_sem = __lwp_sema_open(sem);
 	if(!lwp_sem) return -1;
 
-	__lwp_sema_seize(&lwp_sem->sema,lwp_sem->object.id,TRUE,LWP_THREADQ_NOTIMEOUT);
+	__lwp_sema_seize(&lwp_sem->sema,lwp_sem->object.id,true,LWP_THREADQ_NOTIMEOUT);
 	__lwp_thread_dispatchenable();
 
 	switch(_thr_executing->wait.ret_code) {
@@ -123,7 +123,7 @@ s32 LWP_SemWait(sem_t sem)
 			return EAGAIN;
 		case LWP_SEMA_TIMEOUT:
 			return ETIMEDOUT;
-			
+
 	}
 	return 0;
 }

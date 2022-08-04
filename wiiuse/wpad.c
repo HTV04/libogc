@@ -118,7 +118,7 @@ static sys_resetinfo __wpad_resetinfo = {
 static s32 __wpad_onreset(s32 final)
 {
 	//printf("__wpad_onreset(%d)\n",final);
-	if(final==FALSE) {
+	if(final==false) {
 		WPAD_Shutdown();
 	}
 	return 1;
@@ -942,7 +942,7 @@ s32 WPAD_SetMotionPlus(s32 chan, u8 enable)
 	u32 level;
 	s32 ret;
 	int i;
-	
+
 	if(chan == WPAD_CHAN_ALL) {
 		for(i=WPAD_CHAN_0; i<WPAD_MAX_WIIMOTES; i++)
 			if((ret = WPAD_SetMotionPlus(i, enable)) < WPAD_ERR_NONE)
@@ -1206,7 +1206,7 @@ s32 WPAD_SetIdleThresholds(s32 chan, s32 btns, s32 ir, s32 accel, s32 js, s32 wb
 	__wpdcb[chan].thresh.js = js;
 	__wpdcb[chan].thresh.wb = wb;
 	__wpdcb[chan].thresh.mp = mp;
-	
+
 
 	_CPU_ISR_Restore(level);
 	return WPAD_ERR_NONE;

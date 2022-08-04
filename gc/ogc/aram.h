@@ -31,16 +31,15 @@ distribution.
 #ifndef __ARAM_H__
 #define __ARAM_H__
 
-/*! 
- * \file aram.h 
+/*!
+ * \file aram.h
  * \brief ARAM subsystem
  *
- */ 
+ */
 
 #include <gctypes.h>
-#include <gcbool.h>
 
-/*! 
+/*!
  * \addtogroup dmamode ARAM DMA transfer direction
  * @{
  */
@@ -72,7 +71,7 @@ distribution.
 #endif /* __cplusplus */
 
 
-/*! 
+/*!
  * \typedef void (*ARCallback)(void)
  * \brief function pointer typedef for the user's ARAM interrupt callback
  *
@@ -81,7 +80,7 @@ distribution.
 typedef void (*ARCallback)(void);
 
 
-/*! 
+/*!
  * \fn ARCallback AR_RegisterCallback(ARCallback callback)
  * \brief Register the given function as a DMA callback
  *
@@ -94,7 +93,7 @@ typedef void (*ARCallback)(void);
 ARCallback AR_RegisterCallback(ARCallback callback);
 
 
-/*! 
+/*!
  * \fn u32 AR_GetDMAStatus(void)
  * \brief Get current status of DMA
  *
@@ -103,7 +102,7 @@ ARCallback AR_RegisterCallback(ARCallback callback);
 u32 AR_GetDMAStatus(void);
 
 
-/*! 
+/*!
  * \fn u32 AR_Init(u32 *stack_idx_array,u32 num_entries)
  * \brief Initializes ARAM subsystem.
  *
@@ -117,7 +116,7 @@ u32 AR_GetDMAStatus(void);
  *
  *        The parameter u32 *stack_idx_array points to an array of u32 integers. The parameter u32 num_entries specifies the number of entries in this array.<br>
  *        The user application is responsible for determining how many ARAM blocks the device driver can allocate.<br>
- *        
+ *
  *        As an example, consider:
  * \code
  *        #define MAX_NUM_BLOCKS 10
@@ -129,7 +128,7 @@ u32 AR_GetDMAStatus(void);
  *           AR_Init(aram_blocks, MAX_NUM_BLOCKS);
  *        }
  * \endcode
- *        
+ *
  *        Here, we are telling AR that the application will allocate, at most, 10 blocks (of arbitrary size), and that AR should store addresses for those blocks in the array aram_blocks. Note that the array is simply storage supplied by the application so that AR can track the number and size of memory blocks allocated by AR_Alloc().
  *        AR_Free()also uses this array to release blocks.<br>
  *        If you do not wish to use AR_Alloc() and AR_Free() and would rather manage ARAM usage within your application, then call AR_Init() like so:<br>
@@ -147,7 +146,7 @@ u32 AR_GetDMAStatus(void);
 u32 AR_Init(u32 *stack_idx_array,u32 num_entries);
 
 
-/*! 
+/*!
  * \fn void AR_StartDMA(u32 dir,u32 memaddr,u32 aramaddr,u32 len)
  * \brief Initiates a DMA between main memory and ARAM.
  *
@@ -167,7 +166,7 @@ u32 AR_Init(u32 *stack_idx_array,u32 num_entries);
 void AR_StartDMA(u32 dir,u32 memaddr,u32 aramaddr,u32 len);
 
 
-/*! 
+/*!
  * \fn u32 AR_Alloc(u32 len)
  * \brief Allocate a block of memory from ARAM having <i>len</i> bytes.
  *
@@ -180,7 +179,7 @@ void AR_StartDMA(u32 dir,u32 memaddr,u32 aramaddr,u32 len);
 u32 AR_Alloc(u32 len);
 
 
-/*! 
+/*!
  * \fn u32 AR_Free(u32 *len)
  * \brief Free a block from ARAM
  *
@@ -202,14 +201,14 @@ u32 AR_Free(u32 *len);
 void AR_Clear(u32 flag);
 
 
-/*! 
- * \fn BOOL AR_CheckInit(void)
+/*!
+ * \fn bool AR_CheckInit(void)
  * \brief Get the ARAM subsystem initialization flag
  *
- * \return TRUE if the ARAM subsystem has been initialized(via AR_Init())<br>
- *         FALSE if the ARAM subsystem has not been initialized, or has been reset(via AR_Reset())
+ * \return true if the ARAM subsystem has been initialized(via AR_Init())<br>
+ *         false if the ARAM subsystem has not been initialized, or has been reset(via AR_Reset())
  */
-BOOL AR_CheckInit(void);
+bool AR_CheckInit(void);
 
 
 /*!
@@ -223,7 +222,7 @@ BOOL AR_CheckInit(void);
 void AR_Reset(void);
 
 
-/*! 
+/*!
  * \fn u32 AR_GetSize(void)
  * \brief Get the total size - in bytes - of ARAM as calculated during AR_Init()
  *
@@ -232,7 +231,7 @@ void AR_Reset(void);
 u32 AR_GetSize(void);
 
 
-/*! 
+/*!
  * \fn u32 AR_GetBaseAddress(void)
  * \brief Get the baseaddress of ARAM memory
  *
@@ -241,7 +240,7 @@ u32 AR_GetSize(void);
 u32 AR_GetBaseAddress(void);
 
 
-/*! 
+/*!
  * \fn u32 AR_GetInternalSize(void)
  * \brief Get the size of the internal ARAM memory
  *
@@ -250,7 +249,7 @@ u32 AR_GetBaseAddress(void);
 u32 AR_GetInternalSize(void);
 
 
-/*! 
+/*!
  * \def AR_StartDMARead(maddr,araddr,tlen)
  * \brief Wraps the DMA read operation done by AR_StartDMA()
  */

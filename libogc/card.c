@@ -240,7 +240,7 @@ static vu16* const _viReg = (u16*)0xCC002000;
 /* new api */
 static s32 __card_onreset(s32 final)
 {
-	if(final==FALSE) {
+	if(final==false) {
 		if(CARD_Unmount(CARD_SLOTA)==CARD_ERROR_BUSY) return 0;
 		if(CARD_Unmount(CARD_SLOTB)==CARD_ERROR_BUSY) return 0;
 	}

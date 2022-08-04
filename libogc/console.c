@@ -66,7 +66,7 @@ static const unsigned int color_table[] =
   0xEB80EB80,		// 37 bright white
 };
 
-static u32 do_xfb_copy = FALSE;
+static u32 do_xfb_copy = false;
 static struct _console_data_s stdcon;
 static struct _console_data_s *curr_con = NULL;
 static void *_console_buffer = NULL;
@@ -81,7 +81,7 @@ void __console_vipostcb(u32 retraceCnt)
 	u32 ycnt,xcnt, fb_stride;
 	u32 *fb,*ptr;
 
-	do_xfb_copy = TRUE;
+	do_xfb_copy = true;
 
 	ptr = curr_con->destbuffer;
 	fb = VIDEO_GetCurrentFramebuffer()+(curr_con->target_y*curr_con->tgt_stride) + curr_con->target_x*VI_DISPLAY_PIX_SZ;
@@ -96,7 +96,7 @@ void __console_vipostcb(u32 retraceCnt)
 		fb += fb_stride;
 	}
 
-	do_xfb_copy = FALSE;
+	do_xfb_copy = false;
 }
 
 
@@ -111,7 +111,7 @@ static void __console_drawc(int c)
 	unsigned int fgcolor, bgcolor;
 	unsigned int nextline;
 
-	if(do_xfb_copy==TRUE) return;
+	if(do_xfb_copy==true) return;
 	if(!curr_con) return;
 	con = curr_con;
 

@@ -26,7 +26,7 @@ void __memlock_init(void)
 
 		attr.mode = LWP_MUTEX_FIFO;
 		attr.nest_behavior = LWP_MUTEX_NEST_ACQUIRE;
-		attr.onlyownerrelease = TRUE;
+		attr.onlyownerrelease = true;
 		attr.prioceil = 1;
 		__lwp_mutex_initialize(&mem_lock,&attr,LWP_MUTEX_UNLOCKED);
 	}
@@ -41,7 +41,7 @@ void __libogc_malloc_lock(struct _reent *r)
 	if(!initialized) return;
 
 	_CPU_ISR_Disable(level);
-	__lwp_mutex_seize(&mem_lock,MEMLOCK_MUTEX_ID,TRUE,LWP_THREADQ_NOTIMEOUT,level);
+	__lwp_mutex_seize(&mem_lock,MEMLOCK_MUTEX_ID,true,LWP_THREADQ_NOTIMEOUT,level);
 }
 
 void __libogc_malloc_unlock(struct _reent *r)
@@ -61,7 +61,7 @@ void __libogc_malloc_lock(struct _reent *ptr)
 	if(!initialized) return;
 
 	_CPU_ISR_Disable(level);
-	__lwp_mutex_seize(&mem_lock,MEMLOCK_MUTEX_ID,TRUE,LWP_THREADQ_NOTIMEOUT,level);
+	__lwp_mutex_seize(&mem_lock,MEMLOCK_MUTEX_ID,true,LWP_THREADQ_NOTIMEOUT,level);
 	ptr->_errno = _thr_executing->wait.ret_code;
 }
 

@@ -1,11 +1,12 @@
 #ifndef __GCTYPES_H__
 #define __GCTYPES_H__
 
-/*! \file gctypes.h 
+/*! \file gctypes.h
 \brief Data type definitions
 
-*/ 
+*/
 
+#include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -52,10 +53,6 @@ typedef volatile double vf64;
 // alias type typedefs
 #define FIXED s32					///< Alias type for sfp32
 /*+----------------------------------------------------------------------------------------------+*/
-#ifndef NULL
-#define NULL	0					///< Pointer to 0
-#endif
-/*+----------------------------------------------------------------------------------------------+*/
 #ifndef LITTLE_ENDIAN
 #define LITTLE_ENDIAN  3412
 #endif /* LITTLE_ENDIAN */
@@ -77,7 +74,7 @@ typedef volatile double vf64;
 
 */
 struct __argv {
-	int argvMagic;		//!< argv magic number, set to 0x5f617267 ('_arg') if valid 
+	int argvMagic;		//!< argv magic number, set to 0x5f617267 ('_arg') if valid
 	char *commandLine;	//!< base address of command line, set of null terminated strings
 	int length;//!< total length of command line
 	int argc;

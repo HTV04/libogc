@@ -4,25 +4,25 @@ All rights reserved.
 
 Modified by Francisco Muñoz 'Hermes' MAY 2008
 
-Redistribution and use in source and binary forms, with or without modification, are 
+Redistribution and use in source and binary forms, with or without modification, are
 permitted provided that the following conditions are met:
 
-- Redistributions of source code must retain the above copyright notice, this list of 
-  conditions and the following disclaimer. 
-- Redistributions in binary form must reproduce the above copyright notice, this list 
-  of conditions and the following disclaimer in the documentation and/or other 
-  materials provided with the distribution. 
-- The names of the contributors may not be used to endorse or promote products derived 
-  from this software without specific prior written permission. 
+- Redistributions of source code must retain the above copyright notice, this list of
+  conditions and the following disclaimer.
+- Redistributions in binary form must reproduce the above copyright notice, this list
+  of conditions and the following disclaimer in the documentation and/or other
+  materials provided with the distribution.
+- The names of the contributors may not be used to endorse or promote products derived
+  from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY 
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
-MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
-THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -46,13 +46,13 @@ typedef struct _modinstr
     u32 loop_start;   /* 026..027 */
     u32 loop_end;     /* 028..029 */
     u32 loop_length;
-    BOOL looped;
+    bool looped;
     s8 * data;
   } MOD_INSTR;
 
 typedef struct _mod
   {
-    BOOL loaded;
+    bool loaded;
     s8 name[21];
     MOD_INSTR instrument[31];
     s32 num_patterns;
@@ -68,7 +68,7 @@ typedef struct _mod
     s32 mixingbuflen;
     s32 shiftval;     /* Number of bits to lshift every mixed 16bit word by */
     /* Player variables */
-    BOOL channel_active[MAX_VOICES];
+    bool channel_active[MAX_VOICES];
     s32 patterndelay;
     s32 speed;
     s32 bpm;
@@ -100,28 +100,28 @@ typedef struct _mod
     u8 trem_basevol[MAX_VOICES];
     u8 trem_freq[MAX_VOICES];
     u8 trem_depth[MAX_VOICES];
-    BOOL glissando[MAX_VOICES];
+    bool glissando[MAX_VOICES];
     u8 trem_wave[MAX_VOICES];
     u8 vib_wave[MAX_VOICES];
 
     u8 nextinstr[MAX_VOICES];
     u16 nextnote[MAX_VOICES];
-    
+
     u32 samplespertick;
     u32 samplescounter;
-    
+
     u8 * modraw;
 	u32 *bpmtab;
 	u32 *inctab;
-	
+
     u32 notebeats;
     void (*callback)(void*);
-    
+
     u8 musicvolume;
     u8 sfxvolume;
-    
-    BOOL set;
-    BOOL *notify;
+
+    bool set;
+    bool *notify;
 
   } MOD;
 

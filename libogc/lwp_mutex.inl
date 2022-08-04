@@ -45,7 +45,7 @@ static __inline__ u32 __lwp_mutex_seize_irq_trylock(lwp_mutex *mutex,u32 *isr_le
 		}
 		{
 			u32 prioceiling,priocurr;
-			
+
 			prioceiling = mutex->atrrs.prioceil;
 			priocurr = exec->cur_prio;
 			if(priocurr==prioceiling) {
@@ -55,7 +55,7 @@ static __inline__ u32 __lwp_mutex_seize_irq_trylock(lwp_mutex *mutex,u32 *isr_le
 			if(priocurr>prioceiling) {
 				__lwp_thread_dispatchdisable();
 				_CPU_ISR_Restore(level);
-				__lwp_thread_changepriority(mutex->holder,mutex->atrrs.prioceil,FALSE);
+				__lwp_thread_changepriority(mutex->holder,mutex->atrrs.prioceil,false);
 				__lwp_thread_dispatchenable();
 				return 0;
 			}

@@ -144,7 +144,7 @@ static sys_resetinfo __gx_resetinfo = {
 extern int printk(const char *fmt,...);
 #endif
 
-static __inline__ BOOL IsWriteGatherBufferEmpty(void)
+static __inline__ bool IsWriteGatherBufferEmpty(void)
 {
 	return !(mfwpar()&1);
 }
@@ -198,7 +198,7 @@ static __inline__ void __GX_FifoReadDisable(void)
 
 static s32 __gx_onreset(s32 final)
 {
-	if(final==FALSE) {
+	if(final==false) {
 		GX_Flush();
 		GX_AbortFrame();
 	}
@@ -352,7 +352,7 @@ static void __GX_CleanGPFifo(void)
 
 	_CPU_ISR_Disable(level);
 	__GX_FifoReadDisable();
-	__GX_WriteFifoIntEnable(FALSE,FALSE);
+	__GX_WriteFifoIntEnable(false,false);
 
 	gpfifo->rd_ptr = gpfifo->wt_ptr;
 	gpfifo->rdwt_dst = 0;
@@ -376,14 +376,14 @@ static void __GX_CleanGPFifo(void)
 		cpufifo->rdwt_dst = gpfifo->rdwt_dst;
 
 		_piReg[5] = (cpufifo->wt_ptr&0x1FFFFFE0);
-		__GX_WriteFifoIntEnable(TRUE,FALSE);
-		__GX_FifoLink(TRUE);
+		__GX_WriteFifoIntEnable(true,false);
+		__GX_FifoLink(true);
 	}
 	__gx->cpCRreg &= ~0x22;
 	_cpReg[1] = __gx->cpCRreg;
 	breakPtCB = NULL;
 
-	__GX_WriteFifoIntReset(TRUE,TRUE);
+	__GX_WriteFifoIntReset(true,true);
 	__GX_FifoReadEnable();
 	_CPU_ISR_Restore(level);
 }

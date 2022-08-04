@@ -173,7 +173,7 @@ s32 TPL_OpenTPLFromMemory(TPLFile* tdf, void *memory,u32 len)
 
 		pos = (u32)imghead->data;
 		imghead->data = (char*)(p + pos);
-		imghead->unpacked = TRUE;
+		imghead->unpacked = true;
 
 		pos = (u32)deschead[c].palhead;
 		if(pos) {
@@ -181,7 +181,7 @@ s32 TPL_OpenTPLFromMemory(TPLFile* tdf, void *memory,u32 len)
 
 			pos = (u32)palhead->data;
 			palhead->data = (char*)(p + pos);
-			palhead->unpacked = TRUE;
+			palhead->unpacked = true;
 		}
 		deschead[c].imghead = imghead;
 		deschead[c].palhead = palhead;
@@ -238,13 +238,13 @@ s32 TPL_GetTexture(TPLFile *tdf,s32 id,GXTexObj *texObj)
 
 		pos = (s32)imghead->data;
 		imghead->data = memalign(PPC_CACHE_ALIGNMENT,size);
-		imghead->unpacked = TRUE;
+		imghead->unpacked = true;
 		if(!imghead->data) return -1;
 
 		fseek(f,pos,SEEK_SET);
 		fread(imghead->data,1,size,f);
 	}
-	
+
 	if(imghead->maxlod>0) bMipMap = 1;
 	if(imghead->lodbias>0.0f) biasclamp = GX_ENABLE;
 
@@ -287,7 +287,7 @@ s32 TPL_GetTextureCI(TPLFile *tdf,s32 id,GXTexObj *texObj,GXTlutObj *tlutObj,u8 
 
 		pos = (s32)imghead->data;
 		imghead->data = memalign(PPC_CACHE_ALIGNMENT,size);
-		imghead->unpacked = TRUE;
+		imghead->unpacked = true;
 		if(!imghead->data) return -1;
 
 		fseek(f,pos,SEEK_SET);
@@ -295,7 +295,7 @@ s32 TPL_GetTextureCI(TPLFile *tdf,s32 id,GXTexObj *texObj,GXTlutObj *tlutObj,u8 
 
 		pos = (s32)palhead->data;
 		palhead->data = memalign(PPC_CACHE_ALIGNMENT,(palhead->nitems*sizeof(u16)));
-		palhead->unpacked = TRUE;
+		palhead->unpacked = true;
 		if(!palhead->data) {
 			free(imghead->data);
 			return -1;
@@ -314,7 +314,7 @@ s32 TPL_GetTextureCI(TPLFile *tdf,s32 id,GXTexObj *texObj,GXTlutObj *tlutObj,u8 
 	GX_InitTexObjCI(texObj,imghead->data,imghead->width,imghead->height,imghead->fmt,imghead->wraps,imghead->wrapt,bMipMap,tluts);
 	if(bMipMap) GX_InitTexObjLOD(texObj,imghead->minfilter,imghead->magfilter,imghead->minlod,imghead->maxlod,
 							     imghead->lodbias,biasclamp,biasclamp,imghead->edgelod);
-	
+
 	return 0;
 }
 
@@ -349,7 +349,7 @@ void TPL_CloseTPLFile(TPLFile *tdf)
 		}
 		free(tdf->texdesc);
 	}
-	
+
 	tdf->ntextures = 0;
 	tdf->texdesc = NULL;
 	tdf->tpl_file = NULL;

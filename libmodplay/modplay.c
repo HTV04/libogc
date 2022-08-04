@@ -4,25 +4,25 @@ All rights reserved.
 
 Modified by Francisco Mu�oz 'Hermes' MAY 2008
 
-Redistribution and use in source and binary forms, with or without modification, are 
+Redistribution and use in source and binary forms, with or without modification, are
 permitted provided that the following conditions are met:
 
-- Redistributions of source code must retain the above copyright notice, this list of 
-  conditions and the following disclaimer. 
-- Redistributions in binary form must reproduce the above copyright notice, this list 
-  of conditions and the following disclaimer in the documentation and/or other 
-  materials provided with the distribution. 
-- The names of the contributors may not be used to endorse or promote products derived 
-  from this software without specific prior written permission. 
+- Redistributions of source code must retain the above copyright notice, this list of
+  conditions and the following disclaimer.
+- Redistributions in binary form must reproduce the above copyright notice, this list
+  of conditions and the following disclaimer in the documentation and/or other
+  materials provided with the distribution.
+- The names of the contributors may not be used to endorse or promote products derived
+  from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY 
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
-MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
-THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
-STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -64,7 +64,7 @@ static u32 *bpm_tabs[2] = {NULL,NULL};
 static s32 MEM_CMP ( void * a, void * b, s32 l )
   {
     s32 i;
-    
+
     for (i=0;i<l;i++)
       if (((u8*)a)[i]!=((u8*)b)[i])
         return -1;
@@ -102,8 +102,8 @@ s16 wavetab[4][64] =
       (s16)-180,(s16)-161,(s16)-141,(s16)-120,(s16)-97, (s16)-74, (s16)-49, (s16)-24
     },
     { /* Ramp down */
-      (s16)255, (s16)247, (s16)239, (s16)231, (s16)223, (s16)215, (s16)207, (s16)199, 
-      (s16)191, (s16)183, (s16)175, (s16)167, (s16)159, (s16)151, (s16)143, (s16)135, 
+      (s16)255, (s16)247, (s16)239, (s16)231, (s16)223, (s16)215, (s16)207, (s16)199,
+      (s16)191, (s16)183, (s16)175, (s16)167, (s16)159, (s16)151, (s16)143, (s16)135,
       (s16)127, (s16)119, (s16)111, (s16)103, (s16)95,  (s16)87,  (s16)79,  (s16)71,
       (s16)63,  (s16)55,  (s16)47,  (s16)39,  (s16)31,  (s16)23,  (s16)15,  (s16)7,
       (s16)-1,  (s16)-9,  (s16)-17, (s16)-25, (s16)-33, (s16)-41, (s16)-49, (s16)-57,
@@ -191,7 +191,7 @@ static u32* modplay_getbpmtab(s32 freq)
 static s32 fsize ( s8 * fname )
   {
     u32 s;
-    
+
     if (GpFileGetSize(fname,&s)!=SM_OK)
       return -1;
     else
@@ -202,14 +202,14 @@ static s32 fsize ( s8 * fname )
   {
     file_t f;
     s32 s;
-    
+
     if ((f=fs_open(fname, O_RDONLY))==0)
       return -1;
-    
+
     fs_seek ( f, 0, SEEK_END );
     s = fs_tell ( f );
     fs_close ( f );
-    
+
     return s;
   }
 #elif defined(GAMECUBE)
@@ -245,7 +245,7 @@ s32 MOD_AllocSFXChannels ( MOD * mod, s32 sfxchans )
     else
       mod->num_channels = mod->num_voices+sfxchans;
     mod->shiftval = shiftvals[mod->num_channels];
-    
+
     return (mod->num_voices+sfxchans>32)?-1:0;
   }
 
@@ -259,23 +259,23 @@ void MOD_Free ( MOD * mod )
       gm_free ( mod->modraw );
 
     MEM_SET ( mod, 0, sizeof(MOD) );
-    
-    mod->loaded = FALSE;
+
+    mod->loaded = false;
   }
 #else
 void MOD_Free ( MOD * mod )
   {
-    mod->set = FALSE;
+    mod->set = false;
 
     if (!mod->loaded)
       return;
-    
+
     if (mod->modraw!=NULL)
       free ( mod->modraw );
-    
+
     MEM_SET ( mod, 0, sizeof(MOD) );
-    
-    mod->loaded = FALSE;
+
+    mod->loaded = false;
   }
 #endif
 
@@ -380,10 +380,10 @@ s32 MOD_SetMOD ( MOD * mod, u8 * mem )
         mod->instrument[i].loop_end = tmp + mod->instrument[i].loop_start;
 
         /* Is the sample looped ? */
-        mod->instrument[i].looped = TRUE;
+        mod->instrument[i].looped = true;
         if (tmp<=2)
           { /* No ! */
-            mod->instrument[i].looped = FALSE;
+            mod->instrument[i].looped = false;
             mod->instrument[i].loop_start = mod->instrument[i].loop_end =
               mod->instrument[i].length;
           }
@@ -422,10 +422,10 @@ s32 MOD_SetMOD ( MOD * mod, u8 * mem )
           }
       }
 
-    mod->set = TRUE;
+    mod->set = true;
 
     return 0;
-  } 
+  }
 
 s32 MOD_Load ( MOD * mod, const char * fname )
   {
@@ -449,25 +449,25 @@ s32 MOD_Load ( MOD * mod, const char * fname )
 #if defined(GP32)
     if (GpFileOpen(fname, OPEN_R, &fh)!=SM_OK)
       return -1;
-    
+
     if ((mem=gm_calloc(1,fs))==NULL)
       {
         GpFileClose(fh);
         return -1;
       }
-    
+
     GpFileRead ( fh, mem, fs, &tmp );
     GpFileClose(fh);
 #elif defined(DREAMCAST)
     if ((fh=fs_open(fname, O_RDONLY))==0)
       return -1;
-    
+
     if ((mem=calloc(1,fs))==NULL)
       {
         fs_close ( fh );
         return -1;
       }
-    
+
     fs_read ( fh, mem, fs );
     fs_close ( fh );
 #elif defined(GAMECUBE)
@@ -490,7 +490,7 @@ s32 MOD_Load ( MOD * mod, const char * fname )
         MOD_Free ( mod );
         return -1;
       }
-    mod->loaded = TRUE;
+    mod->loaded = true;
 
     return 0;
   }
@@ -524,19 +524,19 @@ u8 getEffectOp ( MOD * mod, s32 patternline, s32 channel )
     return (data[3]);
   }
 
-BOOL triggerNote ( MOD * mod, s32 i, u8 instrument, u16 note, u8 effect )
+bool triggerNote ( MOD * mod, s32 i, u8 instrument, u16 note, u8 effect )
   {
-    BOOL ret = FALSE;
+    bool ret = false;
     if ((instrument!=0) && (note!=0) && (effect!=3) && (effect!=5))
       {
         mod->playpos[i] = 0;
         mod->instnum[i] = instrument-1;
         mod->sintabpos[i] = 0;
-        ret = TRUE;
+        ret = true;
       }
     if (note!=0)
       {
-        ret = TRUE;
+        ret = true;
         mod->channote[i] = note;
         if ((effect==3) || (effect==5))
           mod->portamento_to[i] = note;
@@ -550,7 +550,7 @@ BOOL triggerNote ( MOD * mod, s32 i, u8 instrument, u16 note, u8 effect )
       }
     if (instrument != 0)
       {
-        ret = TRUE;
+        ret = true;
         mod->volume[i] = mod->instrument[mod->instnum[i]].volume;
       }
     return ret;
@@ -665,7 +665,7 @@ u32 effect_handler ( MOD * mod )
                         {
                           mod->channote[i] = mod->chanfreq[i];
                         }
-                      
+
                       /* Do volume sliding */
                       if (mod->effectop[i]&0xf0)  /* Increase volume */
                         {
@@ -745,7 +745,7 @@ u32 effect_handler ( MOD * mod )
                               {
                                 mod->retrigger_counter[i] = 0;
                                 mod->playpos[i] = 0;
-                                mod->channel_active[i] = TRUE;
+                                mod->channel_active[i] = true;
                                 retval |= 1<<i;
                               }
                           }
@@ -763,7 +763,7 @@ u32 effect_handler ( MOD * mod )
                             if (mod->speedcounter == (mod->effectop[i]&0x0f))
                               {
                                 triggerNote ( mod, i, mod->nextinstr[i], mod->nextnote[i], mod->effect[i] );
-                                mod->channel_active[i] = TRUE;
+                                mod->channel_active[i] = true;
                                 retval |= 1<<i;
                               }
                           }
@@ -779,8 +779,8 @@ u32 process ( MOD * mod )
   {
     s32 i;
     u32 retval = 0;
-    BOOL doPatternBreak=FALSE;
-    BOOL doPatternLoop=FALSE;
+    bool doPatternBreak=false;
+    bool doPatternLoop=false;
     u8 * patternData = getCurPatternData ( mod, mod->patternline, 0 );
 
     for (i=0;i<mod->num_voices;++i)
@@ -789,7 +789,7 @@ u32 process ( MOD * mod )
         u8 instrument = (patternData[0]&0xf0) | ((patternData[2]>>4)&0x0f);
         u8 effect = patternData[2]&0x0f;
         u8 effect_operand = patternData[3];
-        
+
         patternData+=4;
 
         if ( ((mod->last_effect[i]==0x04)||(mod->last_effect[i]==0x06)) &&
@@ -801,7 +801,7 @@ u32 process ( MOD * mod )
           {
             mod->volume[i] = mod->trem_basevol[i];
           }
-          
+
         if ( mod->effect[i]==0x00 && mod->effectop[i]!=0)
           {
             if (effect!=0 || effect_operand==0)
@@ -816,7 +816,7 @@ u32 process ( MOD * mod )
             if (triggerNote ( mod, i, mod->nextinstr[i], mod->nextnote[i], effect ))
               {
                 retval |= 1<<i;
-                mod->channel_active[i] = TRUE;
+                mod->channel_active[i] = true;
               }
           }
 
@@ -850,14 +850,14 @@ u32 process ( MOD * mod )
             case 0x06:
               if (!((mod->last_effect[i]==0x04)||(mod->last_effect[i]==0x06)))
                 mod->vib_basefreq[i] = mod->chanfreq[i];
-              
+
               mod->effect[i] = effect;
               mod->effectop[i] = effect_operand;
               break;
             case 0x07:
               if ( mod->last_effect[i]!=0x07 )
                 mod->trem_basevol[i] = mod->volume[i];
-              
+
               if (effect_operand&0xf0)
                 mod->trem_freq[i] = (effect_operand>>4)&0x0f;
               if (effect_operand&0x0f)
@@ -877,7 +877,7 @@ u32 process ( MOD * mod )
             case 0x0b:
               if (effect_operand<128)
                 {
-				  if(mod->notify) *mod->notify = TRUE;
+				  if(mod->notify) *mod->notify = true;
                   mod->songpos = effect_operand;
                   mod->patternline = 0;
                   return retval;
@@ -889,7 +889,7 @@ u32 process ( MOD * mod )
               mod->volume[i] = effect_operand;
               break;
             case 0x0d:
-              doPatternBreak=TRUE;
+              doPatternBreak=true;
               break;
             case 0x0e:
               switch ( (effect_operand>>4)&0x0f )
@@ -906,10 +906,10 @@ u32 process ( MOD * mod )
                     break;
                   case 0x03:
                     if ( (effect_operand&0x0f) == 0x00 )
-                      mod->glissando[i] = FALSE;
+                      mod->glissando[i] = false;
                     else
                     if ( (effect_operand&0x0f) == 0x01 )
-                      mod->glissando[i] = TRUE;
+                      mod->glissando[i] = true;
                     break;
                   case 0x04:
                     if ( (effect_operand&0x0f) < 8 )
@@ -923,14 +923,14 @@ u32 process ( MOD * mod )
                       mod->patternline_jumpto = mod->patternline;
                     else
                       {
-                        doPatternLoop = TRUE;
+                        doPatternLoop = true;
                         if (mod->patternline_jumpcount==0)
                           {
                             mod->patternline_jumpcount = effect_operand&0x0f;
                           } else
                           {
                             if (--mod->patternline_jumpcount==0)
-                              doPatternLoop = FALSE;
+                              doPatternLoop = false;
                           }
                       }
                     break;
@@ -986,7 +986,7 @@ u32 process ( MOD * mod )
         mod->patternline = 0;
         if (mod->songpos>=mod->song_length)
           {
-			if(mod->notify) *mod->notify = TRUE;
+			if(mod->notify) *mod->notify = true;
             mod->songpos = 0;
             mod->patternline = 0;
           }
@@ -1008,7 +1008,7 @@ u32 process ( MOD * mod )
           }
         if (mod->songpos>=mod->song_length)
           {
-			if(mod->notify) *mod->notify = TRUE;
+			if(mod->notify) *mod->notify = true;
             mod->songpos = 0;
             mod->patternline = 0;
           }
@@ -1032,10 +1032,10 @@ void MOD_Start ( MOD * mod )
         mod->vib_freq[i] = 0;
         mod->vib_depth[i] = 0;
         mod->last_effect[i] = 0;
-        mod->glissando[i] = FALSE;
+        mod->glissando[i] = false;
         mod->trem_wave[i] = 0;
         mod->vib_wave[i] = 0;
-        mod->channel_active[i] = FALSE;
+        mod->channel_active[i] = false;
       }
 
     mod->songpos = 0;
@@ -1043,7 +1043,7 @@ void MOD_Start ( MOD * mod )
     mod->speed = 6;
     mod->bpm = 125;
     mod->speedcounter = 0;
-    
+
     mod->patterndelay = 0;
     mod->patternline_jumpto = 0;
     mod->patternline_jumpcount = 0;
@@ -1158,7 +1158,7 @@ s32 MOD_TriggerNote ( MOD * mod, s32 channel, u8 instnum, u16 freq, u8 vol )
   {
     if (mod==NULL)
       return -1;
-     
+
     channel += mod->num_voices;
     if (channel>=mod->num_channels)
       return -1;
@@ -1167,7 +1167,7 @@ s32 MOD_TriggerNote ( MOD * mod, s32 channel, u8 instnum, u16 freq, u8 vol )
 
     if (instnum!=0xff)
       {
-        mod->channel_active[channel] = TRUE;
+        mod->channel_active[channel] = true;
         mod->playpos[channel] = 0;
         mod->instnum[channel] = instnum;
       }

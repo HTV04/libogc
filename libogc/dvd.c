@@ -171,7 +171,7 @@ static u32 __dvd_autoinvalidation = 1;
 static u32 __dvd_cancellasterror = 0;
 static u32 __dvd_drivechecked = 0;
 static u32 __dvd_drivestate = 0;
-static u32 __dvd_extensionsenabled = TRUE;
+static u32 __dvd_extensionsenabled = true;
 static u32 __dvd_lastlen;
 static u32 __dvd_nextcmdnum;
 static u32 __dvd_workaround;
@@ -774,7 +774,7 @@ static void __dvd_stategettingerrorcb(s32 result)
 				// disable the extensions if they're enabled and we were trying to read the disc ID
 				if(__dvd_executing->cmd==0x0005) {
 					__dvd_lasterror = 0;
-					__dvd_extensionsenabled = FALSE;
+					__dvd_extensionsenabled = false;
 					DVD_LowSpinUpDrive(__dvd_stateretrycb);
 					return;
 				}
@@ -1568,7 +1568,7 @@ static void __dvd_statebusy(dvdcmdblk *block)
 			return;
 		case 17:
 			__dvd_lasterror = 0;
-			__dvd_extensionsenabled = TRUE;
+			__dvd_extensionsenabled = true;
 			DVD_LowSpinUpDrive(__dvd_statebusycb);
 			return;
 		case 18:
@@ -1680,7 +1680,7 @@ static void __dvd_statecoverclosed(void)
 		if(blk->cb) blk->cb(DVD_ERROR_COVER_CLOSED,blk);
 		__dvd_stateready();
 	} else {
-		__dvd_extensionsenabled = TRUE;
+		__dvd_extensionsenabled = true;
 		DVD_LowSpinUpDrive(__dvd_statecoverclosed_spinupcb);
 	}
 }
