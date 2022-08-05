@@ -1046,7 +1046,7 @@ void* __SYS_GetIPCBufferHi(void)
 #endif
 
 void _V_EXPORTNAME(void)
-{ __sys_versionbuild = _V_STRING; __sys_versiondate = _V_DATE_; }
+{ __sys_versionbuild = _V_BUILD_; __sys_versiondate = _V_DATE_; }
 
 #if defined(HW_RVL)
 void __SYS_DoPowerCB(void)

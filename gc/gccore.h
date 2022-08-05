@@ -111,7 +111,7 @@ distribution.
 
 /*!
  * \page intro Introduction
- * Welcome to the libOGC reference documentation.
+ * Welcome to the libogc-mod reference documentation.
  */
 
 /*!

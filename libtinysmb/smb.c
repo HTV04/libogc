@@ -723,7 +723,7 @@ static s32 SMB_SetupAndX(SMBHANDLE *handle)
 	}
 
 	/*** Native OS ***/
-    strcpy(pwd,"Unix (libOGC)");
+    strcpy(pwd,"Unix (libogc-mod)");
 	if(handle->unicode)
 	{
         pos += utf8_to_utf16((char*)&ptr[pos],pwd,SMB_MAXPATH-2);

@@ -12,9 +12,9 @@ endif
 
 export PATH	:=	$(DEVKITPPC)/bin:$(PATH)
 
-export LIBOGC_MAJOR	:= 2
-export LIBOGC_MINOR	:= 3
-export LIBOGC_PATCH	:= 1
+export LIBOGC_MAJOR	:= 1
+export LIBOGC_MINOR	:= 0
+export LIBOGC_PATCH	:= 0
 
 include	$(DEVKITPPC)/base_rules
 
@@ -210,10 +210,8 @@ gc/ogc/libversion.h : Makefile
 	@echo "#define _V_MINOR_	$(LIBOGC_MINOR)" >> $@
 	@echo "#define _V_PATCH_	$(LIBOGC_PATCH)" >> $@
 	@echo >> $@
-	@echo "#define _V_DATE_			__DATE__" >> $@
-	@echo "#define _V_TIME_			__TIME__" >> $@
-	@echo >> $@
-	@echo '#define _V_STRING "libOGC Release '$(LIBOGC_MAJOR).$(LIBOGC_MINOR).$(LIBOGC_PATCH)'"' >> $@
+	@echo '#define _V_BUILD_	"libogc-mod v$(LIBOGC_MAJOR).$(LIBOGC_MINOR).$(LIBOGC_PATCH) ($(shell git log -1 --pretty='%h'))"' >> $@
+	@echo '#define _V_DATE_	"$(shell date)"' >> $@
 	@echo >> $@
 	@echo "#endif // __LIBVERSION_H__" >> $@
 
