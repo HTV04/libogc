@@ -120,7 +120,6 @@ distribution.
  * - \ref aram.h "ARAM subsystem"
  * - \ref arqmgr.h "ARAM queue management subsystem"
  * - \ref audio.h "AUDIO subsystem"
- * - \ref asndlib.h "ASND library"
  * - \ref exi.h "EXI subsystem"
  * - \ref irq.h "IRQ subsystem"
  * - \ref dsp.h "DSP subsystem"

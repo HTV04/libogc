@@ -36,7 +36,6 @@ export DIDIR		:= $(BASEDIR)/libdi
 export BTEDIR		:= $(BASEDIR)/lwbt
 export WIIUSEDIR	:= $(BASEDIR)/wiiuse
 export TINYSMBDIR	:= $(BASEDIR)/libtinysmb
-export LIBASNDDIR	:= $(BASEDIR)/libasnd
 export LIBAESNDDIR	:= $(BASEDIR)/libaesnd
 export LIBISODIR	:= $(BASEDIR)/libiso9660
 export LIBWIIKEYB	:= $(BASEDIR)/libwiikeyboard
@@ -67,7 +66,6 @@ DILIB		:= $(LIBDIR)/libdi
 BTELIB		:= $(LIBDIR)/libbte
 WIIUSELIB	:= $(LIBDIR)/libwiiuse
 TINYSMBLIB	:= $(LIBDIR)/libtinysmb
-ASNDLIB		:= $(LIBDIR)/libasnd
 AESNDLIB	:= $(LIBDIR)/libaesnd
 ISOLIB		:= $(LIBDIR)/libiso9660
 WIIKEYBLIB	:= $(LIBDIR)/libwiikeyboard
@@ -171,9 +169,6 @@ WIIUSEOBJ	:=	classic.o dynamics.o events.o guitar_hero_3.o io.o io_wii.o ir.o \
 TINYSMBOBJ	:=	des.o md4.o ntlm.o smb.o smb_devoptab.o
 
 #---------------------------------------------------------------------------------
-ASNDLIBOBJ	:=	asndlib.o
-
-#---------------------------------------------------------------------------------
 AESNDLIBOBJ	:=	aesndlib.o
 
 #---------------------------------------------------------------------------------
@@ -223,16 +218,8 @@ gc/ogc/libversion.h : Makefile
 	@echo "#endif // __LIBVERSION_H__" >> $@
 
 #---------------------------------------------------------------------------------
-asndlib.o: asnd_dsp_mixer.h
-#---------------------------------------------------------------------------------
 aesndlib.o: aesnd_dsp_mixer.h
 #---------------------------------------------------------------------------------
-
-#---------------------------------------------------------------------------------
-asnd_dsp_mixer.h: $(LIBASNDDIR)/dsp_mixer/dsp_mixer.s
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@gcdsptool -c $< -o $@
 
 #---------------------------------------------------------------------------------
 aesnd_dsp_mixer.h: $(LIBAESNDDIR)/dspcode/dspmixer.s
