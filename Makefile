@@ -39,6 +39,7 @@ export TINYSMBDIR	:= $(BASEDIR)/libtinysmb
 export LIBAESNDDIR	:= $(BASEDIR)/libaesnd
 export LIBISODIR	:= $(BASEDIR)/libiso9660
 export LIBWIIKEYB	:= $(BASEDIR)/libwiikeyboard
+export LIBMIIDIR	:= $(BASEDIR)/libmii
 export STUBSDIR		:= $(BASEDIR)/lockstubs
 export DEPS			:=	$(BASEDIR)/deps
 export LIBS			:=	$(BASEDIR)/lib
@@ -69,6 +70,7 @@ TINYSMBLIB	:= $(LIBDIR)/libtinysmb
 AESNDLIB	:= $(LIBDIR)/libaesnd
 ISOLIB		:= $(LIBDIR)/libiso9660
 WIIKEYBLIB	:= $(LIBDIR)/libwiikeyboard
+MIILIB		:= $(LIBDIR)/libmii
 STUBSLIB	:= $(LIBDIR)/libgclibstubs
 
 #---------------------------------------------------------------------------------
@@ -101,26 +103,26 @@ CFLAGS		+= -DNDEBUG -O2
 ASFLAGS		:= $(MACHDEP) -mregnames -D_LANGUAGE_ASSEMBLY $(INCLUDES)
 
 #---------------------------------------------------------------------------------
-VPATH :=	$(LWIPDIR)				\
-			$(LWIPDIR)/arch/gc		\
+VPATH :=	$(LWIPDIR)					\
+			$(LWIPDIR)/arch/gc			\
 			$(LWIPDIR)/arch/gc/netif	\
-			$(LWIPDIR)/core			\
-			$(LWIPDIR)/core/ipv4	\
-			$(LWIPDIR)/netif	\
-			$(OGCDIR)			\
-			$(MODDIR)			\
-			$(SAMPLEDIR)			\
-			$(DBDIR)			\
-			$(DBDIR)/uIP		\
-			$(DIDIR)		\
-			$(BTEDIR)		\
-			$(WIIUSEDIR)		\
-			$(SDCARDDIR)			\
-			$(TINYSMBDIR)		\
-			$(LIBASNDDIR)		\
-			$(LIBAESNDDIR)		\
-			$(LIBISODIR)		\
-			$(LIBWIIKEYB)		\
+			$(LWIPDIR)/core				\
+			$(LWIPDIR)/core/ipv4		\
+			$(LWIPDIR)/netif			\
+			$(OGCDIR)					\
+			$(MODDIR)					\
+			$(SAMPLEDIR)				\
+			$(DBDIR)					\
+			$(DBDIR)/uIP				\
+			$(DIDIR)					\
+			$(BTEDIR)					\
+			$(WIIUSEDIR)				\
+			$(SDCARDDIR)				\
+			$(TINYSMBDIR)				\
+			$(LIBAESNDDIR)				\
+			$(LIBISODIR)				\
+			$(LIBWIIKEYB)				\
+			$(LIBMIIDIR)				\
 			$(STUBSDIR)
 
 
@@ -176,6 +178,9 @@ ISOLIBOBJ	:=	iso9660.o
 
 #---------------------------------------------------------------------------------
 WIIKEYBLIBOBJ	:=	usbkeyboard.o keyboard.o ukbdmap.o wskbdutil.o
+
+#---------------------------------------------------------------------------------
+MIILIBOBJ	:=	mii.o
 
 
 
@@ -240,13 +245,13 @@ $(DILIB).a: $(DIOBJ)
 #---------------------------------------------------------------------------------
 $(TINYSMBLIB).a: $(TINYSMBOBJ)
 #---------------------------------------------------------------------------------
-$(ASNDLIB).a: $(ASNDLIBOBJ)
-#---------------------------------------------------------------------------------
 $(AESNDLIB).a: $(AESNDLIBOBJ)
 #---------------------------------------------------------------------------------
 $(ISOLIB).a: $(ISOLIBOBJ)
 #---------------------------------------------------------------------------------
 $(WIIKEYBLIB).a: $(WIIKEYBLIBOBJ)
+#---------------------------------------------------------------------------------
+$(MIILIB).a: $(MIILIBOBJ)
 #---------------------------------------------------------------------------------
 $(BTELIB).a: $(BTEOBJ)
 #---------------------------------------------------------------------------------
@@ -296,13 +301,13 @@ dist: wii cube install-headers
 
 
 LIBRARIES	:=	$(OGCLIB).a  $(MODLIB).a $(DBLIB).a \
-				$(TINYSMBLIB).a $(ASNDLIB).a $(AESNDLIB).a $(ISOLIB).a
+				$(TINYSMBLIB).a $(AESNDLIB).a $(ISOLIB).a
 
 ifeq ($(PLATFORM),cube)
 LIBRARIES	+=	$(BBALIB).a
 endif
 ifeq ($(PLATFORM),wii)
-LIBRARIES	+=	$(BTELIB).a $(WIIUSELIB).a $(DILIB).a $(WIIKEYBLIB).a
+LIBRARIES	+=	$(BTELIB).a $(WIIUSELIB).a $(DILIB).a $(WIIKEYBLIB).a $(MIILIB).a
 endif
 
 #---------------------------------------------------------------------------------
