@@ -119,7 +119,7 @@ typedef struct _mii {
 	bool female;
 	int month;
 	int day;
-	int favoriteColor;	// 0 - 11 (changing to 1111, along with setting the preceeding bit
+	int favorite_color;	// 0 - 11 (changing to 1111, along with setting the preceeding bit
 						// results in a grey shirt, some values over 11 will crash the Wii
 						// when trying to change the favorite color).
 	bool favorite;
@@ -134,96 +134,98 @@ typedef struct _mii {
 	double weight;                 // 0.0 - 1.0
 
 // addr: 0x18 - 0x1B
-	int miiID1;                // Unique Mii identifiers. Seem to increment with time. Also can
-	int miiID2;                // be used to change color of Mii Trousers
-	int miiID3;
-	int miiID4;
+	int mii_id_1;                // Unique Mii identifiers. Seem to increment with time. Also can
+	int mii_id_2;                // be used to change color of Mii Trousers
+	int mii_id_3;
+	int mii_id_4;
 
 // addr: 0x1C through 0x1F
-	int systemID0;	           // Checksum8 of first 3 bytes of mac addr
-	int systemID1;	           // mac addr 3rd-to-last byte
-	int systemID2;	           // mac addr 2nd-to-last byte
-	int systemID3;	           // mac addr last byte
+	int system_id_0;	           // Checksum8 of first 3 bytes of mac addr
+	int system_id_1;	           // mac addr 3rd-to-last byte
+	int system_id_2;	           // mac addr 2nd-to-last byte
+	int system_id_3;	           // mac addr last byte
 
 // addr: 0x20 & 0x21
-	int faceShape;           // 0 - 7
-	int skinColor;           // 0 - 5
-	int facialFeature;       // 0 - 11
+	int face_shape;           // 0 - 7
+	int skin_color;           // 0 - 5
+	int facial_feature;       // 0 - 11
 	//u16 unknown;             // Mii appears unaffected by changes to this data
 	bool mingle;
 	//u16 unknown;             // Mii appears unaffected by changes to this data
 	bool downloaded;
 
 // addr: 0x22 & 0x23
-	int hairType;            // 0 - 71, Value is non-sequential with regard to page, row and column
-	int hairColor;           // 0 - 7
-	bool hairReversed;
+	int hair_type;            // 0 - 71, Value is non-sequential with regard to page, row and column
+	int hair_color;           // 0 - 7
+	bool hair_reversed;
 	//u16 unknown;
 
 // addr: 0x24 through 0x27
-	int eyebrowType;         // 0 - 23, Value is non-sequential with regard to page, row and column
+	int eyebrow_type;         // 0 - 23, Value is non-sequential with regard to page, row and column
 	//u32 unknown;
-	int eyebrowRotation;     // 0 - 11, Default value varies based on eyebrow type
+	int eyebrow_rotation;     // 0 - 11, Default value varies based on eyebrow type
 	//u32 unknown;
-	int eyebrowColor;        // 0 - 7
-	int eyebrowSize;	   // 0 - 8, Default = 4
-	int eyebrowHeight;   // 3 - 18, Default = 10
-	int eyebrowSpacing;    // 0 - 12, Default = 2
+	int eyebrow_color;        // 0 - 7
+	int eyebrow_size;	   // 0 - 8, Default = 4
+	int eyebrow_height;   // 3 - 18, Default = 10
+	int eyebrow_spacing;    // 0 - 12, Default = 2
 
 // addr: 0x28 through 0x2B
-	int eyeType;             // 0 - 47, Value is non-sequential with regard to page, row and column
+	int eye_type;             // 0 - 47, Value is non-sequential with regard to page, row and column
 	//u32 unknown;
-	int eyeRotation;         // 0 - 7, Default value varies based on eye type
-	int eyeHeight;          // 0 - 18, Default = 12
-	int eyeColor;            // 0 - 5
+	int eye_rotation;         // 0 - 7, Default value varies based on eye type
+	int eye_height;          // 0 - 18, Default = 12
+	int eye_color;            // 0 - 5
 	//u32 unknown;
-	int eyeSize;             // 0 - 7, Default = 4
-	int eyeSpacing;     // 0 - 12, Default = 2
+	int eye_size;             // 0 - 7, Default = 4
+	int eye_spacing;     // 0 - 12, Default = 2
 	//u32 unknown;
 
 // addr: 0x2C & 0x2D
-	int noseType;            // 0 - 11, Value is non-sequential with regard to row and column
-	int noseSize;            // 0 - 8, Default = 4
-	int noseHeight;          // 0 - 18, Default = 9
+	int nose_type;            // 0 - 11, Value is non-sequential with regard to row and column
+	int nose_size;            // 0 - 8, Default = 4
+	int nose_height;          // 0 - 18, Default = 9
 	//u16 unknown;
 
 // addr: 0x2E & 2F
-	int lipType;             // 0 - 23, Value is non-sequential with regard to page, row and column
-	int lipColor;            // 0 - 2
-	int lipSize;             // 0 - 8, Default = 4
-	int lipHeight;          // 0 - 18, Default = 13
+	int lip_type;             // 0 - 23, Value is non-sequential with regard to page, row and column
+	int lip_color;            // 0 - 2
+	int lip_size;             // 0 - 8, Default = 4
+	int lip_height;          // 0 - 18, Default = 13
 
 // addr: 0x30 & 0x31
-	int glassesType;         // 0 - 8
-	int glassesColor;        // 0 - 5
+	int glasses_type;         // 0 - 8
+	int glasses_color;        // 0 - 5
 	//int unknown;             // when turned on mii does not appear (use not known)
-	int glassesSize;         // 0 - 7, Default = 4
-	int glassesHeight;      // 0 - 20, Default = 10
+	int glasses_size;         // 0 - 7, Default = 4
+	int glasses_height;      // 0 - 20, Default = 10
 
 // addr: 0x32 & 33
-	int mustacheType;        // 0 - 3
-	int beardType;           // 0 - 3
-	int facialHairColor;     // 0 - 7
-	int mustacheSize;        // 0 - 8, Default = 4
-	int mustacheHeight;     // 0 - 16, Default = 10
+	int mustache_type;        // 0 - 3
+	int beard_type;           // 0 - 3
+	int facial_hair_color;     // 0 - 7
+	int mustache_size;        // 0 - 8, Default = 4
+	int mustache_height;     // 0 - 16, Default = 10
 
 // addr: 0x34 & 0x35
 	bool mole;
-	int moleSize;			// 0 - 8, Default = 4
-	int moleVertical; 		// 0 - 30, Default = 20
-	int moleHoriziontal;	// 0 - 16, Default = 2
+	int mole_size;			// 0 - 8, Default = 4
+	int mole_vertical; 		// 0 - 30, Default = 20
+	int mole_horizontal;	// 0 - 16, Default = 2
 	//u16 unknown;
 
 // addr: 0x36 through 0x49
 	wchar_t creator[MII_CREATOR_LENGTH];
 } Mii;
 
-int MII_Init(void);
+int MII_Init(void); // Initialize from Mii data on NAND
+int MII_InitMemory(char *buffer, unsigned int size); // Initialize from Mii data in memory
+int MII_InitFile(const char *filename); // Initialize from Mii data from file
 
-Mii MII_GetMii(unsigned int n);
-unsigned int MII_GetCount(void);
+Mii MII_GetMii(unsigned int index); // Get Mii data from index
+unsigned int MII_GetCount(void); // Get number of Miis
 
-void MII_GetMiis(Mii *miis, unsigned int size);
+void MII_GetMiis(Mii *miis, unsigned int size); // Get Mii data from all Miis in an array
 
 #if defined(__cplusplus)
    }
