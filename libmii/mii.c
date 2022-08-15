@@ -300,7 +300,7 @@ static int mii_init_common(char *buffer) {
 	if (memcmp(buffer, "RNOD", 4) != 0) return MII_ERROR_VERSION;
 
 	// Parse and store Mii data into an internal array
-	mii_miis = (Mii *) malloc(sizeof(Mii));
+	mii_miis = (Mii *) malloc(sizeof(Mii) * MII_MAX);
 	if (mii_miis == NULL) {
 		free(buffer);
 
@@ -310,17 +310,23 @@ static int mii_init_common(char *buffer) {
 	mii_count = 0;
 
 	for (int n = 0; n < MII_MAX; n++){
-		if (mii_load(buffer, (n * MII_SIZE) + 4, &mii_miis[mii_count]) == true) {
-			mii_count++;
-
-			mii_miis = (Mii *) realloc(mii_miis, sizeof(Mii) * (mii_count + 1));
-		}
+		if (mii_load(buffer, (n * MII_SIZE) + 4, &mii_miis[mii_count]) == true) mii_count++;
 	}
 
 	if (mii_count == 0) {
 		free(mii_miis);
 
 		return MII_ERROR_EMPTY;
+	} else if (mii_count < MII_MAX) {
+		Mii *temp = (Mii *) realloc(mii_miis, sizeof(Mii) * mii_count);
+
+		if (temp == NULL) {
+			free(mii_miis);
+
+			return MII_ERROR_MEMORY;
+		} else {
+			mii_miis = temp;
+		}
 	}
 
 	return MII_ERROR_NONE;
